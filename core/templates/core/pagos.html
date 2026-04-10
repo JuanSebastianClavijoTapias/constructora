@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Findora - Gestión de Pagos</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#5f5e5e",
+                        "on-primary": "#faf7f6",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#2d3435",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#596061",
+                        "error": "#9f403d",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body">
+    <nav class="h-screen w-64 fixed left-0 top-0 bg-[#f2f4f4] flex flex-col py-8 px-6 z-50">
+        <div class="mb-12 px-2">
+            <span class="font-manrope font-extrabold text-2xl tracking-tighter text-[#2d3435]">Haven</span>
+            <p class="text-xs text-zinc-500 font-medium tracking-wide mt-1">Admin Editorial</p>
+        </div>
+        <div class="flex-1 space-y-1">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:bg-[#ebeeef] font-manrope text-sm font-medium tracking-tight" href="{% url 'dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:bg-[#ebeeef] font-manrope text-sm font-medium tracking-tight" href="{% url 'propiedades' %}">
+                <span class="material-symbols-outlined">domain</span> Propiedades
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-bold bg-[#ffffff] border-r-4 border-[#5f5e5e] text-[#2d3435]" href="{% url 'pagos' %}">
+                <span class="material-symbols-outlined">payments</span> Pagos
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:bg-[#ebeeef] font-manrope text-sm font-medium tracking-tight" href="{% url 'soporte' %}">
+                <span class="material-symbols-outlined">chat_bubble</span> Soporte
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:bg-[#ebeeef] font-manrope text-sm font-medium tracking-tight" href="#">
+                <span class="material-symbols-outlined">settings</span> Ajustes
+            </a>
+        </div>
+    </nav>
+
+    <main class="ml-64 pt-24 px-10 pb-12 min-h-screen">
+        <section class="mb-10 flex justify-between items-end">
+            <div>
+                <nav class="flex items-center gap-2 text-xs font-medium text-on-surface-variant mb-4 uppercase tracking-widest">
+                    <span>Admin</span>
+                    <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                    <span class="text-on-surface">Pagos y Cobros</span>
+                </nav>
+                <h1 class="text-4xl font-extrabold font-headline mb-2">Flujo de Ingresos</h1>
+                <p class="text-on-surface-variant max-w-lg">Monitorea los pagos de los inquilinos y el estado general de las finanzas.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'pago_crear' %}" class="py-3 px-6 bg-primary text-on-primary rounded-full font-headline font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 scale-98 active:scale-95 transition-transform">
+                    <span class="material-symbols-outlined text-sm">add</span> Registrar Pago
+                </a>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="p-8 rounded-lg bg-surface-container-lowest">
+                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-4">Ingresos Pagados</p>
+                <h3 class="text-3xl font-extrabold font-headline">${{ total_revenue }}</h3>
+            </div>
+            <div class="p-8 rounded-lg bg-surface-container-lowest">
+                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-4">Ingresos Pendientes</p>
+                <h3 class="text-3xl font-extrabold font-headline">${{ total_upcoming }}</h3>
+            </div>
+            <div class="p-8 rounded-lg bg-surface-container-lowest">
+                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-4">Deuda Atrasada</p>
+                <h3 class="text-3xl font-extrabold font-headline text-error">${{ total_outstanding }}</h3>
+            </div>
+        </section>
+
+        <section class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low/30 border-none">
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Inquilino</th>
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Propiedad</th>
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Monto</th>
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Fecha Límite</th>
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Estado</th>
+                            <th class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for pago in pagos_list %}
+                        <tr class="hover:bg-surface-container-low/20 transition-colors group">
+                            <td class="px-8 py-6">
+                                <div class="font-bold text-sm">{{ pago.inquilino_nombre }}</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="font-medium text-sm">{{ pago.propiedad.nombre }}</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="font-bold text-sm">${{ pago.monto_mensual }}</div>
+                                <div class="text-[10px] text-on-surface-variant">{{ pago.metodo_pago }}</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="font-medium text-sm">{{ pago.fecha_limite }}</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                {% if pago.estado == 'PAGADO' %}
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Pagado</span>
+                                {% elif pago.estado == 'PENDIENTE' %}
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Pendiente</span>
+                                {% else %}
+                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Atrasado</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <a href="{% url 'pago_editar' pago.pk %}" class="p-2 hover:bg-surface-container rounded-full text-primary" title="Editar Pago">
+                                    <span class="material-symbols-outlined text-lg">edit</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No hay pagos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

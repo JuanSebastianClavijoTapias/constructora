@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Findora - Soporte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#5f5e5e",
+                        "on-primary": "#faf7f6",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#2d3435",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-container-high": "#e4e9ea",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#596061",
+                        "error": "#9f403d",
+                        "outline-variant": "#acb3b4",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; vertical-align: middle; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body antialiased">
+    <!-- SideNavBar Component -->
+    <aside class="h-screen w-64 fixed left-0 top-0 flex flex-col h-full py-8 px-6 bg-[#f2f4f4] z-50">
+        <div class="mb-12">
+            <h1 class="font-manrope font-extrabold text-2xl tracking-tighter text-[#2d3435]">Haven</h1>
+            <p class="font-manrope text-xs font-medium tracking-tight text-zinc-500 uppercase mt-1">Admin Editorial</p>
+        </div>
+        <nav class="flex-1 space-y-2">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-medium tracking-tight text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-medium tracking-tight text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'propiedades' %}">
+                <span class="material-symbols-outlined">domain</span> Propiedades
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-medium tracking-tight text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'pagos' %}">
+                <span class="material-symbols-outlined">payments</span> Pagos
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-bold tracking-tight text-[#2d3435] border-r-4 border-[#5f5e5e] bg-[#ffffff]" href="{% url 'soporte' %}">
+                <span class="material-symbols-outlined">chat_bubble</span> Soporte
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-manrope text-sm font-medium tracking-tight text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="#">
+                <span class="material-symbols-outlined">settings</span> Ajustes
+            </a>
+        </nav>
+        <div class="mt-auto pt-8">
+            <div class="mt-8 flex items-center gap-3 px-2">
+                <img alt="Curator Profile" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8FqX7tp5zVok2NsrYIMIZDQpOoTLRSeZ5ad93dgQy1wyrzpFoxRzjrFpwl4pkljxHbneyuOfExXjKtOl8ps-a8ihDeJpXFzdfZT_BgB9TwiLmLpEFkwpajAlcxIp0ino59Pc_k8lksiaHj5ir1b-F9k6ha_CpwaAqYh1ghGbJYYQtEXV6AUSPv9gah-tXXELHPA-_OZVq6HuvJzl15-FUv131DfEgWSiRkBEXZyt9yakPSTshmspd0R_3m5w2OI1MnOgi0oO_PLE"/>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold leading-none">Alex Rivera</p>
+                    <p class="text-[10px] text-zinc-500 mt-1">Jefe de Gestión</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- TopAppBar -->
+    <header class="fixed top-0 right-0 left-64 h-20 flex justify-between items-center px-10 w-full z-40 bg-[#f9f9f9]/80 backdrop-blur-xl shadow-sm">
+        <div class="flex items-center gap-8 w-1/2">
+            <div class="relative w-full max-w-md">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                <input class="w-full bg-surface-container-low border-none rounded-full py-2.5 pl-12 pr-4 text-sm focus:ring-0 placeholder:text-on-surface-variant/60" placeholder="Buscar incidentes o inquilinos..." type="text"/>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex gap-4">
+                <button class="text-[#2d3435] hover:opacity-80 transition-opacity"><span class="material-symbols-outlined">notifications</span></button>
+                <button class="text-[#2d3435] hover:opacity-80 transition-opacity"><span class="material-symbols-outlined">help_outline</span></button>
+            </div>
+            <div class="h-8 w-[1px] bg-outline-variant/20"></div>
+            <div class="flex items-center gap-3">
+                <span class="font-manrope text-sm font-semibold">Centro de Soporte</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="pl-64 pt-20 h-screen overflow-hidden flex">
+        <!-- Incidents List -->
+        <section class="w-[400px] flex-shrink-0 bg-surface-container-low border-r border-transparent flex flex-col h-full">
+            <div class="p-8 pb-4">
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="font-manrope text-2xl font-extrabold tracking-tighter">Incidentes</h2>
+                    <span class="text-xs font-bold text-primary px-3 py-1 bg-surface-container-high rounded-full">12 Activos</span>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <button class="bg-primary text-on-primary px-4 py-2 rounded-full text-xs font-bold">Todos</button>
+                    <button class="bg-surface-container-high text-on-surface px-4 py-2 rounded-full text-xs font-medium">Nuevos</button>
+                    <button class="bg-surface-container-high text-on-surface px-4 py-2 rounded-full text-xs font-medium">Pendientes</button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto px-6 space-y-4 pb-12">
+                <div class="p-5 rounded-lg bg-surface-container-lowest shadow-sm border-l-4 border-error hover:scale-[1.02] cursor-pointer transition-transform">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-error">Crítico</span>
+                        <span class="text-[10px] text-on-surface-variant">hace 2m</span>
+                    </div>
+                    <h3 class="font-bold mb-1">Tubería rota - Unidad 402</h3>
+                    <p class="text-xs text-on-surface-variant line-clamp-1 mb-3">Filtración de agua en la cocina...</p>
+                    <div class="flex items-center gap-2">
+                        <img alt="Tenant" class="w-6 h-6 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc62XlKBQndeXH8IBUCmzXbe9Y2xifUon4MnpLfodhxAv_Sev12W-8Cwgw8R2AtqunbNeFTX3Jmdi8rFa3Fzu7ryLZopo_k7az8ZcnzBJH8Zjbhz8an87-c4aWtZ7pnqo6lOfLkMXZwCtoUv0IHyrVnV5AwzAAXHrX-9nMycZf5h2smfKcWYfkkAuOBiFXOwSgFZU2Ykm1ELdeMqUaW51oA-olxbhxnhSlAc64wuvPOxpovH4rzXZ5ZDXmd7KKoD-Z7A66v6RXUf4"/>
+                        <span class="text-[10px] font-semibold">Sarah Jenkins</span>
+                        <span class="text-[10px] ml-auto text-on-surface-variant font-medium">The Glass House</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chat Area -->
+        <section class="flex-1 bg-surface-lowest flex flex-col h-full relative">
+            <div class="p-8 pb-6 flex justify-between items-center bg-surface-container-lowest/50 backdrop-blur-md z-10">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-xl bg-surface-container overflow-hidden">
+                        <img alt="Property" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlhhIvtrDd5AkXATe_C9flslAiWlct6mZ4FxaqwleT6BhivF5sbzDdfRgHZ-PMAskaf9suWWO8PsbqOSSxdxPaXkQNUA0nl1lAxyI2bYbCmj7qxjf186C527D1ScdwI_bAsr9rzS0yzs9yNl9TbK7_QGVBkRzc6FUV54CDawxsDxWxKcgH9i4ytDJzoZ8CaO0DDxA4ld5UiT_I25KM12VgNvwhawcj8hj4xZLQtEN04mhAaQ9hK9Ewx-rVlAxUyYztZ6izPgRXynU"/>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h2 class="font-manrope text-xl font-extrabold tracking-tight">The Glass House • Unidad 402</h2>
+                        </div>
+                        <p class="text-sm text-on-surface-variant font-medium">Inquilino: Sarah Jenkins</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto px-10 py-4 space-y-8">
+                <!-- Chat Messages -->
+                <div class="flex gap-4 max-w-2xl">
+                    <img alt="Tenant" class="w-10 h-10 rounded-full object-cover self-end" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpNbfjtpIfqKCRUwvrHZb6JqcGH1F2DD2C4khvLgIDeQcDEtEJtrtXlrvA5FRbL__XIXNM3IWtsjxUOK0gTCIp0XpYLQ1H8K1aDTq-RuAykpwTXbWEGq8Kx0mc61cFA5NOcEfmfu9s91_llwXwK_SojZIOa-wfp21vqda9WBg9EqXI-LA0LpprjsSXvrv_BTpB7XOWJs9ig9cisa8bSnC2NNd88qhn_RrLiLeWefvilz6eTCkhye5NJK8n9clvgFAuc_LQH2iWUUc"/>
+                    <div class="space-y-2">
+                        <div class="bg-surface-container-low p-6 rounded-lg rounded-bl-none">
+                            <p class="text-sm">Hola, la tubería debajo de la cocina se reventó. Ya cerré la llave de paso pero hay mucha agua en el suelo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 max-w-2xl ml-auto flex-row-reverse">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary self-end">
+                        <span class="material-symbols-outlined text-sm">support_agent</span>
+                    </div>
+                    <div class="space-y-2 text-right">
+                        <div class="bg-primary text-on-primary p-6 rounded-lg rounded-br-none text-left">
+                            <p class="text-sm">Siento mucho escuchar eso Sarah. Acabo de despachar un fontanero de emergencia, llegará en 45 minutos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-8 pt-0">
+                <div class="bg-surface-container-low p-2 rounded-xl flex items-center gap-2">
+                    <input class="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-on-surface-variant/50 px-4" placeholder="Escribe un mensaje..." type="text"/>
+                    <button class="bg-primary text-on-primary w-12 h-12 rounded-xl flex items-center justify-center">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Findora - Formulario Pago</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#5f5e5e",
+                        "on-primary": "#faf7f6",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#2d3435",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-container-lowest": "#ffffff",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body p-10">
+    <div class="max-w-2xl mx-auto bg-surface-container-lowest p-8 rounded-xl shadow-sm">
+        <h1 class="text-3xl font-headline font-bold mb-6">{{ titulo }}</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                {% for field in form %}
+                <div>
+                    <label class="block text-sm font-bold text-on-surface mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="text-xs text-on-surface-variant mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-8 flex gap-4">
+                <button type="submit" class="px-6 py-3 bg-primary text-on-primary rounded-full font-bold">Guardar</button>
+                <a href="{% url 'pagos' %}" class="px-6 py-3 bg-surface-container-low text-on-surface rounded-full font-bold">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

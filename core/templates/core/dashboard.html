@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Findora - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#5f5e5e",
+                        "on-primary": "#faf7f6",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#2d3435",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-container-highest": "#e4e9ea",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#596061",
+                        "error": "#9f403d",
+                        "outline-variant": "#acb3b4",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .editorial-shadow { box-shadow: 0 40px 60px -20px rgba(45, 52, 53, 0.05); }
+        body { background-color: #f9f9f9; }
+    </style>
+</head>
+<body class="font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+    <!-- SideNavBar -->
+    <aside class="h-screen w-64 fixed left-0 top-0 bg-[#f2f4f4] flex flex-col py-8 px-6 z-50">
+        <div class="mb-12">
+            <h1 class="font-manrope font-extrabold text-2xl tracking-tighter text-[#2d3435]">Haven</h1>
+            <p class="font-manrope text-xs font-medium tracking-tight text-zinc-500 mt-1 uppercase">Admin Editorial</p>
+        </div>
+        <nav class="flex-1 space-y-2">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff] transition-colors duration-300" href="{% url 'dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span> <span class="font-manrope text-sm font-medium tracking-tight">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'propiedades' %}">
+                <span class="material-symbols-outlined">domain</span> <span class="font-manrope text-sm font-medium tracking-tight">Propiedades</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'pagos' %}">
+                <span class="material-symbols-outlined">payments</span> <span class="font-manrope text-sm font-medium tracking-tight">Pagos</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="{% url 'soporte' %}">
+                <span class="material-symbols-outlined">chat_bubble</span> <span class="font-manrope text-sm font-medium tracking-tight">Soporte</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-[#2d3435] hover:bg-[#ebeeef] transition-colors duration-300" href="#">
+                <span class="material-symbols-outlined">settings</span> <span class="font-manrope text-sm font-medium tracking-tight">Ajustes</span>
+            </a>
+        </nav>
+        <div class="mt-auto">
+            <div class="mt-8 flex items-center gap-3 px-2">
+                <img alt="Curator Profile" class="w-10 h-10 rounded-full object-cover" data-alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlMw_yulovesXBBzdYcvrsyOZ5Fd-VPr1GmKAOAOUCgR8LXqrFsbLLlsIzx6o8W4qlLhPK_RTJzbLfcXOvRXr-vo5CHnELQzMHJX9egy_ZXD8jmBoLLYLXhBzsrDZe1h6Ly509X2MGqf_u4MaWrrvoeSFHIe_S3OPDpwZAUPM4AceW2P460ZpDBjOHnHFHeAAa7LjCPRcbJr4i4Ay6IrJI3F7DhJlTL5Czf-l2LaGKwRpZLsRzC3J30AMyZhi2kOR3DwESnUMrFFM"/>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold truncate">Marcus Chen</p>
+                    <p class="text-[10px] text-zinc-500">Jefe de Gestión</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ml-64 min-h-screen">
+        <header class="fixed top-0 right-0 left-64 h-20 bg-[#f9f9f9]/80 backdrop-blur-xl flex justify-between items-center px-10 w-full z-40 shadow-sm">
+            <div class="flex items-center gap-6">
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+                    <input class="bg-surface-container-low border-none rounded-full pl-10 pr-6 py-2 text-sm w-64 focus:ring-1 focus:ring-outline-variant/30 transition-all" placeholder="Buscar en el portfolio..." type="text"/>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <button class="text-zinc-400 hover:opacity-80 transition-opacity">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                    <button class="text-zinc-400 hover:opacity-80 transition-opacity">
+                        <span class="material-symbols-outlined">help_outline</span>
+                    </button>
+                </div>
+                <div class="h-8 w-[1px] bg-outline-variant/20"></div>
+                <div class="flex items-center gap-3">
+                    <span class="font-manrope text-sm font-semibold">Haven Admin</span>
+                    <img alt="Administrator Avatar" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbKOHk8uFGbRQH1DFJ8Rm2wm9l0wBGF-ReiZDmhTZh2iSWtxDYtkOHi1KxHAHB3OUCMBD-Gah_vDNwXD50yGWM-RK_7qmsNbUyQWzNpX-QtLXiizKCnOrQV0eK3Mw8pjvrqFAOS2KMgCver_RMwRnyheUTuZz0CeNpHOJCY4XnlfzJHoRcIkovDcxZO_bznEC7AmYzmlbnEQf0cyENueATv-tXfN98R4Swxyg1rOOpO375iwv3iUgv3G0IaFKL0HzY51ffPEOX3nk"/>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Canvas -->
+        <section class="pt-32 pb-20 px-10 max-w-7xl mx-auto">
+            <!-- Hero Header -->
+            <div class="mb-12 flex justify-between items-end">
+                <div>
+                    <h2 class="font-headline text-display-lg text-4xl font-extrabold tracking-tighter text-on-surface">Dashboard</h2>
+                    <p class="font-body text-on-surface-variant mt-2 text-lg">Resumen del portafolio - Octubre 2024</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="px-6 py-3 rounded-full bg-surface-container-highest font-semibold text-sm hover:bg-surface-container-high transition-colors">
+                        Descargar Reporte
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics Bento Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="bg-surface-container-lowest p-8 rounded-xl editorial-shadow group hover:bg-primary hover:text-on-primary transition-all duration-500">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="material-symbols-outlined text-primary group-hover:text-on-primary p-3 bg-surface-container-low rounded-full group-hover:bg-white/10">trending_up</span>
+                        <span class="text-xs font-bold uppercase tracking-widest opacity-60">Ingresos</span>
+                    </div>
+                    <p class="font-headline text-3xl font-extrabold tracking-tighter">$142,850</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-sm font-bold text-primary group-hover:text-on-primary">+12.5%</span>
+                        <span class="text-xs opacity-60">vs mes anterior</span>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest p-8 rounded-xl editorial-shadow group">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="material-symbols-outlined text-primary p-3 bg-surface-container-low rounded-full">bed</span>
+                        <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Ocupación</span>
+                    </div>
+                    <p class="font-headline text-3xl font-extrabold tracking-tighter">94.2%</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+                            <div class="bg-primary h-full w-[94.2%]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest p-8 rounded-xl editorial-shadow group">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="material-symbols-outlined text-error p-3 bg-error/10 rounded-full">warning</span>
+                        <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pendiente</span>
+                    </div>
+                    <p class="font-headline text-3xl font-extrabold tracking-tighter">$12,400</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-sm font-bold text-error">8 Pagos</span>
+                        <span class="text-xs text-on-surface-variant">requieren atención</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Split Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <!-- Recent Activity Table -->
+                <div class="lg:col-span-2">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-headline text-2xl font-bold tracking-tight">Actividad Reciente</h3>
+                        <a class="text-sm font-bold text-primary border-b-2 border-primary/20 hover:border-primary transition-all" href="#">Ver Archivo</a>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-surface-container-low/50">
+                                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Entidad</th>
+                                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Actividad</th>
+                                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Monto</th>
+                                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant/10">
+                                <tr class="hover:bg-surface-container-low/30 transition-colors">
+                                    <td class="px-8 py-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-surface-container-highest flex-shrink-0 overflow-hidden">
+                                                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBf2yjKXeKeiPgFBm_9wRn_0Cyy2OsoYT1nuFLdbBJeAuF9FRBcImEuuNrtEkixSfPxVZcguXUAdVzd44arkoRnmwDa_s-ukdgJAzmo5WZ5CWMH7im5euH_OHYWBEavoqjyNQNOjkBlEGpW3Tw29oXifGfT-0_4TGlam8aZ-Tbq5SPVz0L7N4ORUQRj5OQOa7EGwZkV2qo3Xa6LxLzgOQ7zLTMSw3evhk5ZQlKh3wN6zyc7aYZhb_fYtALj-CvvkN4OMxY3A-uzv90"/>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-bold">The Glass House</p>
+                                                <p class="text-[10px] text-on-surface-variant">Unidad 402</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <p class="text-sm font-medium">Pago de Renta</p>
+                                        <p class="text-[10px] text-on-surface-variant">Hace 2 horas</p>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <span class="text-sm font-bold">$4,200</span>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <span class="px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-tighter">Completado</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Priority Alerts -->
+                <div>
+                    <h3 class="font-headline text-2xl font-bold tracking-tight mb-8">Alertas Prioritarias</h3>
+                    <div class="space-y-4">
+                        <div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-error editorial-shadow group hover:-translate-y-1 transition-transform">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-error">Atrasado</span>
+                                <span class="text-[10px] text-on-surface-variant">14 Días</span>
+                            </div>
+                            <h4 class="font-bold text-sm">Elena Rodriguez</h4>
+                            <p class="text-xs text-on-surface-variant mt-1">Skyline Residences — Unidad 804</p>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-lg font-extrabold text-error">$3,500</span>
+                                <button class="p-2 rounded-full bg-surface-container-low hover:bg-primary hover:text-on-primary transition-colors">
+                                    <span class="material-symbols-outlined text-sm">mail</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
