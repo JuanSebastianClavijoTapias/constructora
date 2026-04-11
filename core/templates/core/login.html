@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Iniciar sesión - Haven{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-6 bg-surface-container-low background-pattern">
+    <div class="w-full max-w-md bg-surface-container-lowest p-10 rounded-3xl editorial-shadow">
+        <div class="mb-10 text-center">
+            <h1 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">Haven</h1>
+            <p class="font-body text-sm text-on-surface-variant mt-3 font-medium">Ingresa a tu cuenta o vivienda</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-error/10 text-error font-medium rounded-xl text-sm mb-4">
+                Tus credenciales no son válidas. Por favor intenta de nuevo.
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-2 ml-1 text-on-surface">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-error text-xs mt-1 ml-1 font-medium">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full py-3.5 px-4 bg-[#2d3435] text-white rounded-2xl font-bold hover:bg-black transition-colors editorial-shadow mt-4">
+                Ingresar
+            </button>
+        </form>
+        
+        <div class="mt-8 pt-6 border-t border-outline-variant/20 text-center">
+            <p class="text-xs text-on-surface-variant">¿Problemas para ingresar? Contacta con administración.</p>
+        </div>
+    </div>
+</div>
+<style>
+    .background-pattern {
+        background-image: radial-gradient(#e4e9ea 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+</style>
+{% endblock %}

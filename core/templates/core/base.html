@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}Constructora Haven{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#5f5e5e",
+                        "on-primary": "#faf7f6",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#2d3435",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-container-highest": "#e4e9ea",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#596061",
+                        "error": "#9f403d",
+                        "outline-variant": "#acb3b4",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .editorial-shadow { box-shadow: 0 40px 60px -20px rgba(45, 52, 53, 0.05); }
+        body { background-color: #f9f9f9; }
+        [x-cloak] { display: none !important; }
+    </style>
+    <!-- Alpine.js para la interactividad del menú -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="font-body text-on-surface selection:bg-primary/20 selection:text-primary min-h-screen flex" x-data="{ sidebarOpen: false }">
+
+    {% if not standalone %}
+    <!-- Mobile header with hamburger -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#f2f4f4] z-50 flex items-center justify-between px-4 border-b border-outline-variant/20">
+        <h1 class="font-headline font-extrabold text-xl tracking-tighter text-[#2d3435]">Haven</h1>
+        <button @click="sidebarOpen = !sidebarOpen" class="text-[#2d3435] p-2">
+            <span class="material-symbols-outlined" x-show="!sidebarOpen">menu</span>
+            <span class="material-symbols-outlined" x-cloak x-show="sidebarOpen">close</span>
+        </button>
+    </div>
+
+    <!-- SideNavBar -->
+    <aside class="fixed inset-y-0 left-0 z-40 w-64 bg-[#f2f4f4] flex flex-col py-8 px-6 transform transition-transform duration-300 lg:translate-x-0"
+           :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
+        <div class="mb-12 hidden lg:block">
+            <h1 class="font-headline font-extrabold text-2xl tracking-tighter text-[#2d3435]">Haven</h1>
+            <p class="font-headline text-xs font-medium tracking-tight text-zinc-500 mt-1 uppercase">Gestión de Propiedades</p>
+        </div>
+        
+        <nav class="flex-1 space-y-2 mt-8 lg:mt-0">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-headline text-sm tracking-tight transition-colors duration-300 {% if active_section == 'dashboard' %}text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff]{% else %}text-zinc-500 font-medium hover:text-[#2d3435] hover:bg-[#ebeeef]{% endif %}" href="{% url 'dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+
+            {% if is_admin %}
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-headline text-sm tracking-tight transition-colors duration-300 {% if active_section == 'propiedades' %}text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff]{% else %}text-zinc-500 font-medium hover:text-[#2d3435] hover:bg-[#ebeeef]{% endif %}" href="{% url 'propiedades' %}">
+                <span class="material-symbols-outlined">domain</span> Propiedades
+            </a>
+            {% endif %}
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-headline text-sm tracking-tight transition-colors duration-300 {% if active_section == 'pagos' %}text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff]{% else %}text-zinc-500 font-medium hover:text-[#2d3435] hover:bg-[#ebeeef]{% endif %}" href="{% url 'pagos' %}">
+                <span class="material-symbols-outlined">payments</span> Pagos
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-headline text-sm tracking-tight transition-colors duration-300 {% if active_section == 'soporte' %}text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff]{% else %}text-zinc-500 font-medium hover:text-[#2d3435] hover:bg-[#ebeeef]{% endif %}" href="{% url 'soporte' %}">
+                <span class="material-symbols-outlined">home_repair_service</span> Soporte
+            </a>
+
+            {% if is_admin %}
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-headline text-sm tracking-tight transition-colors duration-300 {% if active_section == 'usuarios' %}text-[#2d3435] font-bold border-r-4 border-[#5f5e5e] bg-[#ffffff]{% else %}text-zinc-500 font-medium hover:text-[#2d3435] hover:bg-[#ebeeef]{% endif %}" href="{% url 'usuarios' %}">
+                <span class="material-symbols-outlined">group</span> Usuarios
+            </a>
+            {% endif %}
+        </nav>
+        
+        <div class="mt-auto pt-8 border-t border-outline-variant/20">
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold flex-shrink-0 text-sm">
+                        {{ user.username|make_list|first|upper }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold truncate">{{ user_profile.nombre_mostrar }}</p>
+                        <p class="text-[10px] text-zinc-500 truncate">{{ user_profile.get_rol_display }}</p>
+                    </div>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-zinc-400 hover:text-error transition-colors" title="Cerrar sesión">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div x-cloak x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/20 z-30 lg:hidden backdrop-blur-sm"></div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full min-h-screen {% if not standalone %}lg:ml-64 pt-16 lg:pt-0{% endif %}">
+        {% if messages %}
+        <div class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl shadow-lg {% if message.tags == 'error' %}bg-error text-on-primary{% elif message.tags == 'success' %}bg-green-600 text-white{% else %}bg-surface-container-highest text-on-surface{% endif %} flex justify-between items-start gap-3 animate-fade-in" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                <p class="text-sm font-medium">{{ message }}</p>
+                <button @click="show = false" class="opacity-70 hover:opacity-100">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</body>
+</html>

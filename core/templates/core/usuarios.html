@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Usuarios de Viviendas - Haven{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-10 max-w-7xl mx-auto xl:ml-0">
+    <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+            <h2 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">Gestión de Usuarios</h2>
+            <p class="font-body text-on-surface-variant mt-2">Crea cuentas de acceso para los residentes.</p>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow text-center">
+            <span class="material-symbols-outlined text-primary mb-2">fingerprint</span>
+            <p class="text-3xl font-extrabold tracking-tighter">{{ total_usuarios }}</p>
+            <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Total</p>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow text-center border-b-4 border-green-500">
+            <span class="material-symbols-outlined text-green-600 mb-2">person</span>
+            <p class="text-3xl font-extrabold tracking-tighter">{{ total_inquilinos }}</p>
+            <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Inquilinos</p>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow text-center border-b-4 border-blue-500">
+            <span class="material-symbols-outlined text-blue-600 mb-2">admin_panel_settings</span>
+            <p class="text-3xl font-extrabold tracking-tighter">{{ total_admins }}</p>
+            <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Administradores</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Lista de Usuarios -->
+        <div class="lg:col-span-2">
+            <div class="bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow">
+                {% if perfiles %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-surface-container-low/50">
+                                <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Usuario</th>
+                                <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Vivienda</th>
+                                <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Rol</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/10">
+                            {% for perfil in perfiles %}
+                            <tr class="hover:bg-surface-container-low/30 transition-colors">
+                                <td class="px-6 py-5">
+                                    <p class="font-bold text-sm">{{ perfil.nombre_mostrar }}</p>
+                                    <p class="text-xs text-on-surface-variant mt-0.5">{{ perfil.user.username }}</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    {% if perfil.propiedad %}
+                                        <p class="text-sm">{{ perfil.propiedad.nombre }}</p>
+                                    {% else %}
+                                        <span class="text-xs text-on-surface-variant italic">No asignado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-5">
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide
+                                        {% if perfil.rol == 'ADMIN' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ perfil.get_rol_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-12 text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-4xl mb-4 opacity-50 block">group_off</span>
+                    <p class="text-base">No hay usuarios registrados aún.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulario Alta Usuario -->
+        <div>
+            <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow sticky top-24">
+                <h3 class="font-headline text-xl font-bold tracking-tight mb-6">Nuevo Acceso</h3>
+                <form method="post" action="{% url 'usuarios' %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="p-3 bg-error/10 text-error rounded-xl text-sm font-medium">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-xs font-semibold mb-1 ml-1 text-on-surface">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <p class="text-[11px] text-on-surface-variant mt-1 ml-1">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-error text-xs mt-1 ml-1 font-medium">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="w-full py-3 px-4 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors mt-6">
+                        Crear Acceso
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

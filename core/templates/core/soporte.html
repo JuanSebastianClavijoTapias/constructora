@@ -1,4 +1,162 @@
-<!DOCTYPE html>
+{% extends 'core/base.html' %}
+
+{% block content %}
+<section class="p-6 md:p-10 max-w-7xl mx-auto xl:ml-0">
+    <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+            <h2 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">Soporte y Mantenimiento</h2>
+            <p class="font-body text-on-surface-variant mt-2">
+                {% if is_admin %}Gestión de incidencias del portafolio.{% else %}Reporta incidencias de tu vivienda y te atenderemos pronto.{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow text-center">
+            <span class="material-symbols-outlined text-error mb-2">error</span>
+            <p class="text-3xl font-extrabold tracking-tighter">{{ open_incidents_count }}</p>
+            <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Abiertas</p>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow text-center">
+            <span class="material-symbols-outlined text-green-600 mb-2">check_circle</span>
+            <p class="text-3xl font-extrabold tracking-tighter">{{ resolved_incidents_count }}</p>
+            <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Resueltas</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Lista de Incidentes -->
+        <div class="lg:col-span-2">
+            <h3 class="font-headline text-xl font-bold tracking-tight mb-6">Historial de Reportes</h3>
+            <div class="bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow">
+                {% if incidencias %}
+                <div class="divide-y divide-outline-variant/10">
+                    {% for incidencia in incidencias %}
+                    <div class="p-6 transition-colors {% if incidencia.estado == 'NUEVA' and is_admin %}bg-error/5 border-l-4 border-error{% else %}hover:bg-surface-container-low/30 border-l-4 border-transparent{% endif %}">
+                        <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold uppercase tracking-widest text-[#596061]">{{ incidencia.get_categoria_display }}</span>
+                                    {% if incidencia.prioridad == 'ALTA' %}
+                                    <span class="bg-error text-on-primary text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Crítico</span>
+                                    {% endif %}
+                                </div>
+                                <h4 class="font-bold text-base">{{ incidencia.titulo }}</h4>
+                                <p class="text-sm text-on-surface-variant mt-1">
+                                    {{ incidencia.propiedad.nombre }} &middot; {{ incidencia.creado_en|date:"d M Y, H:i" }}
+                                </p>
+                                {% if incidencia.descripcion %}
+                                <p class="text-sm mt-3 bg-surface-container-low p-3 rounded-lg text-on-surface text-opacity-80">{{ incidencia.descripcion }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="flex sm:flex-col items-center sm:items-end justify-between gap-3 mt-4 sm:mt-0">
+                                <span class="text-xs font-bold px-3 py-1 rounded-md uppercase tracking-wide
+                                    {% if incidencia.estado == 'NUEVA' %}bg-error/20 text-error
+                                    {% elif incidencia.estado == 'EN_PROCESO' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ incidencia.get_estado_display }}
+                                </span>
+                                
+                                {% if is_admin %}
+                                <form method="post" action="{% url 'soporte_actualizar_estado' incidencia.pk %}" class="flex items-center gap-2 mt-2">
+                                    {% csrf_token %}
+                                    <select name="estado" class="text-xs py-1.5 px-2 bg-surface-container-highest border-none rounded-md cursor-pointer focus:ring-1 focus:ring-primary" onchange="this.form.submit()">
+                                        <option value="NUEVA" {% if incidencia.estado == 'NUEVA' %}selected{% endif %}>Nueva</option>
+                                        <option value="EN_PROCESO" {% if incidencia.estado == 'EN_PROCESO' %}selected{% endif %}>En Proceso</option>
+                                        <option value="RESUELTA" {% if incidencia.estado == 'RESUELTA' %}selected{% endif %}>Resuelta</option>
+                                    </select>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-12 text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-5xl mb-4 opacity-50 block">sentiment_satisfied</span>
+                    <p class="text-base">No hay historial de soporte aún.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulario (Quick & Custom) - Mostrando solo a Inquilinos (Y Admins por funcionalidad de testing/ejemplo) -->
+        <div>
+            <h3 class="font-headline text-xl font-bold tracking-tight mb-6">Crear Nuevo Reporte</h3>
+            
+            <!-- Quick Actions -->
+            <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow mb-6">
+                <p class="text-sm font-bold text-on-surface mb-4">Fallos Comunes</p>
+                <div class="grid grid-cols-2 gap-3">
+                    {% for issue in common_issue_catalog %}
+                    <form method="post" action="{% url 'soporte_crear_rapido' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="categoria" value="{{ issue.category }}">
+                        {% if is_admin %}
+                            {% with p=propiedades_soporte|first %} 
+                            <input type="hidden" name="propiedad_id" value="{{ p.id|default:0 }}">
+                            {% endwith %}
+                        {% else %}
+                            <input type="hidden" name="propiedad_id" value="{{ user_profile.propiedad_id }}">
+                        {% endif %}
+                        
+                        <button type="submit" class="w-full h-full flex flex-col items-center gap-2 p-3 bg-surface-container-low hover:bg-surface-container-highest transition-colors rounded-xl {% if not is_admin and not user_profile.propiedad_id %}opacity-50 cursor-not-allowed{% endif %}" {% if not is_admin and not user_profile.propiedad_id %}disabled{% endif %} title="{{ issue.label }}">
+                            <span class="material-symbols-outlined text-primary">{{ issue.icon }}</span>
+                            <span class="text-xs font-bold text-center leading-tight">{{ issue.label }}</span>
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Custom Incident -->
+            <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow">
+                <p class="text-sm font-bold text-on-surface mb-4">Fallo Personalizado</p>
+                <form method="post" action="{% url 'soporte_crear_personalizado' %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    {% if is_admin %}
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 ml-1 text-on-surface-variant">Propiedad afectada</label>
+                        <select name="propiedad_id" class="w-full rounded-xl border border-slate-200 bg-surface-container-low px-4 py-2 mt-1 text-sm focus:ring-2 focus:ring-primary/10">
+                            {% for prop in propiedades_soporte %}
+                            <option value="{{ prop.id }}">{{ prop.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% else %}
+                        <input type="hidden" name="propiedad_id" value="{{ user_profile.propiedad_id }}">
+                    {% endif %}
+
+                    <div>
+                        <label for="{{ custom_support_form.titulo.id_for_label }}" class="block text-xs font-semibold mb-1 ml-1 text-on-surface-variant">{{ custom_support_form.titulo.label }}</label>
+                        {{ custom_support_form.titulo }}
+                    </div>
+                    <div>
+                        <label for="{{ custom_support_form.prioridad.id_for_label }}" class="block text-xs font-semibold mb-1 ml-1 text-on-surface-variant">Severidad / Urgencia</label>
+                        {{ custom_support_form.prioridad }}
+                    </div>
+                    <div>
+                        <label for="{{ custom_support_form.descripcion.id_for_label }}" class="block text-xs font-semibold mb-1 ml-1 text-on-surface-variant">{{ custom_support_form.descripcion.label }}</label>
+                        {{ custom_support_form.descripcion }}
+                    </div>
+
+                    <button type="submit" class="w-full py-3 px-4 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors mt-2" {% if not is_admin and not user_profile.propiedad_id %}disabled{% endif %}>
+                        Enviar Reporte
+                    </button>
+                    {% if not is_admin and not user_profile.propiedad_id %}
+                    <p class="text-xs text-error mt-2">No tienes una vivienda asociada para reportar fallos.</p>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}<!DOCTYPE html>
 <html class="light" lang="es">
 <head>
     <meta charset="utf-8"/>

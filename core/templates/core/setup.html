@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Setup inicial - Haven{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-6 bg-surface-container-low background-pattern">
+    <div class="w-full max-w-md bg-surface-container-lowest p-10 rounded-3xl editorial-shadow">
+        <div class="mb-10 text-center">
+            <div class="w-16 h-16 bg-primary rounded-2xl mx-auto mb-6 flex items-center justify-center text-on-primary">
+                <span class="material-symbols-outlined text-3xl">real_estate_agent</span>
+            </div>
+            <h1 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">Bienvenido a Haven</h1>
+            <p class="font-body text-sm text-on-surface-variant mt-2">Configura la cuenta de administrador principal para comenzar a gestionar el sistema.</p>
+        </div>
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-error/10 text-error rounded-xl text-sm mb-4">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-2 ml-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="text-xs text-on-surface-variant mt-1 ml-1">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                <div class="text-error text-xs mt-1 ml-1 font-medium">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full py-3 px-4 bg-primary text-on-primary rounded-2xl font-bold hover:bg-primary/90 transition-colors editorial-shadow mt-4">
+                Crear Administrador
+            </button>
+        </form>
+    </div>
+</div>
+<style>
+    .background-pattern {
+        background-image: radial-gradient(#e4e9ea 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+</style>
+{% endblock %}
