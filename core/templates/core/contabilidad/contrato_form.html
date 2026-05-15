@@ -1,0 +1,231 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Contrato{% else %}Nuevo Contrato{% endif %} - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="max-w-3xl">
+    <!-- Header -->
+    <div class="mb-6 pb-4 border-b border-outline-variant/10">
+        <h2 class="font-headline font-bold text-2xl text-on-surface">
+            {% if form.instance.pk %}
+                <span class="material-symbols-outlined align-middle mr-2">edit</span>
+                Editar Contrato
+            {% else %}
+                <span class="material-symbols-outlined align-middle mr-2">add</span>
+                Nuevo Contrato de Mantenimiento
+            {% endif %}
+        </h2>
+    </div>
+
+    <!-- Formulario -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Propiedad -->
+        <div>
+            <label for="{{ form.propiedad.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                Propiedad
+            </label>
+            {{ form.propiedad }}
+            {% if form.propiedad.errors %}
+                <p class="text-sm text-error mt-1">{{ form.propiedad.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Detalles del Servicio -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Detalles del Servicio</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.tipo_servicio.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Tipo de Servicio
+                        </label>
+                        {{ form.tipo_servicio }}
+                        {% if form.tipo_servicio.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.tipo_servicio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Estado
+                        </label>
+                        {{ form.estado }}
+                        {% if form.estado.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.estado.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.proveedor.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Nombre del Proveedor
+                    </label>
+                    {{ form.proveedor }}
+                    {% if form.proveedor.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.proveedor.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.numero_contrato.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Número de Contrato (opcional)
+                    </label>
+                    {{ form.numero_contrato }}
+                    {% if form.numero_contrato.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.numero_contrato.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.costo_mensual.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Costo Mensual (COP)
+                        </label>
+                        {{ form.costo_mensual }}
+                        {% if form.costo_mensual.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.costo_mensual.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.alerta_renovacion_dias.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Días Previo para Alerta de Renovación
+                        </label>
+                        {{ form.alerta_renovacion_dias }}
+                        {% if form.alerta_renovacion_dias.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.alerta_renovacion_dias.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Fechas del Contrato -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Fechas del Contrato</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Fecha de Inicio
+                        </label>
+                        {{ form.fecha_inicio }}
+                        {% if form.fecha_inicio.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.fecha_inicio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Fecha de Fin (opcional)
+                        </label>
+                        {{ form.fecha_fin }}
+                        {% if form.fecha_fin.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.fecha_fin.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.fecha_proximo_pago.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Próxima Fecha de Pago
+                    </label>
+                    {{ form.fecha_proximo_pago }}
+                    {% if form.fecha_proximo_pago.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.fecha_proximo_pago.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Información del Proveedor -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Contacto del Proveedor</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.telefono_proveedor.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Teléfono (opcional)
+                        </label>
+                        {{ form.telefono_proveedor }}
+                        {% if form.telefono_proveedor.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.telefono_proveedor.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.correo_proveedor.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Correo (opcional)
+                        </label>
+                        {{ form.correo_proveedor }}
+                        {% if form.correo_proveedor.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.correo_proveedor.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Notas -->
+        <div>
+            <label for="{{ form.notas.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                Notas Adicionales (opcional)
+            </label>
+            {{ form.notas }}
+            <p class="text-xs text-on-surface-variant mt-1">Términos especiales, contactos adicionales, etc.</p>
+            {% if form.notas.errors %}
+                <p class="text-sm text-error mt-1">{{ form.notas.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Errores generales -->
+        {% if form.non_field_errors %}
+        <div class="p-4 rounded-lg bg-red-50 border-l-4 border-l-error">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm text-error font-medium">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Botones de acción -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-outline-variant/10">
+            <a href="{% url 'contratos_mantenimiento_lista' %}" class="px-5 py-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container-highest transition-colors font-medium text-sm">
+                Cancelar
+            </a>
+            <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Contrato
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type='text'], 
+    input[type='email'], 
+    input[type='date'], 
+    input[type='number'], 
+    select, 
+    textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #acb3b4;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    input[type='text']:focus, 
+    input[type='email']:focus, 
+    input[type='date']:focus, 
+    input[type='number']:focus, 
+    select:focus, 
+    textarea:focus {
+        outline: none;
+        border-color: #5f5e5e;
+        box-shadow: 0 0 0 3px rgba(95, 94, 94, 0.1);
+    }
+</style>
+{% endblock %}

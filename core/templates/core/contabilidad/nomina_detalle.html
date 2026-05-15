@@ -1,0 +1,256 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}Nómina - {{ nomina.empleado.nombre_completo }} - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="mb-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/10">
+    <div>
+        <h1 class="font-headline font-bold text-2xl lg:text-3xl text-on-surface">Detalles de Nómina</h1>
+        <p class="text-on-surface-variant text-sm mt-2">Período: <span class="font-semibold">{{ nomina.periodo_mes|date:"F \\d\\e Y" }}</span></p>
+    </div>
+    <div class="flex gap-2">
+        {% if nomina.estado != 'PAGADA' %}
+        <form method="POST" action="{% url 'nomina_pagar' nomina.pk %}" class="inline" onsubmit="return confirm('¿Marcar nómina como pagada? Esto registrará la fecha de pago como hoy.')">
+            {% csrf_token %}
+            <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium text-sm">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                <span>Pagar Nómina</span>
+            </button>
+        </form>
+        {% else %}
+        <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 text-green-700 font-medium text-sm border border-green-300">
+            <span class="material-symbols-outlined text-lg">verified</span>
+            <span>Pagada</span>
+        </div>
+        {% endif %}
+        <a href="{% url 'nomina_lista' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            <span>Volver</span>
+        </a>
+    </div>
+</div>
+
+<!-- Información del Empleado -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">person</span>
+            Información del Empleado
+        </h3>
+        <div class="space-y-2">
+            <div>
+                <p class="text-sm text-on-surface-variant">Nombre</p>
+                <p class="font-medium text-on-surface">{{ nomina.empleado.nombre_completo }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Cédula</p>
+                <p class="font-medium text-on-surface">{{ nomina.empleado.cedula }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Cargo</p>
+                <p class="font-medium text-on-surface">{{ nomina.empleado.get_tipo_empleado_display }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Tipo de Contrato</p>
+                <p class="font-medium text-on-surface">{{ nomina.empleado.get_tipo_contrato_display }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-600">check_circle</span>
+            Estado de Pago
+        </h3>
+        <div class="mb-4">
+            {% if nomina.estado == 'PAGADA' %}
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-medium">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>Pagada</span>
+                </div>
+                {% if nomina.fecha_pago %}
+                <p class="text-sm text-on-surface-variant mt-3">Pagada el: <span class="font-semibold text-on-surface">{{ nomina.fecha_pago|date:"d \d\e F \d\e Y" }}</span></p>
+                {% endif %}
+            {% elif nomina.estado == 'CONFIRMADA' %}
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-medium">
+                    <span class="material-symbols-outlined">done_all</span>
+                    <span>Confirmada</span>
+                </div>
+            {% else %}
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <span>{{ nomina.get_estado_display }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Resumen de Ingresos -->
+<div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6 mb-6">
+    <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-green-600">add_circle</span>
+        Ingresos
+    </h3>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+            <p class="text-sm text-on-surface-variant mb-1">Salario Base</p>
+            <p class="text-2xl font-bold text-green-600">${{ nomina.salario_base|floatformat:0 }}</p>
+        </div>
+        {% if nomina.aux_transporte %}
+        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-sm text-on-surface-variant mb-1">Auxilio Transporte</p>
+            <p class="text-2xl font-bold text-blue-600">${{ nomina.aux_transporte|floatformat:0 }}</p>
+        </div>
+        {% endif %}
+        {% if nomina.otros_ingresos %}
+        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-sm text-on-surface-variant mb-1">Otros Ingresos</p>
+            <p class="text-2xl font-bold text-blue-600">${{ nomina.otros_ingresos|floatformat:0 }}</p>
+        </div>
+        {% endif %}
+        {% if nomina.horas_extras_100 %}
+        <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm text-on-surface-variant mb-1">Horas Extras 25%</p>
+            <p class="text-2xl font-bold text-purple-600">${{ nomina.horas_extras_100|floatformat:0 }}</p>
+        </div>
+        {% endif %}
+        {% if nomina.horas_extras_150 %}
+        <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm text-on-surface-variant mb-1">Horas Extras 75%</p>
+            <p class="text-2xl font-bold text-purple-600">${{ nomina.horas_extras_150|floatformat:0 }}</p>
+        </div>
+        {% endif %}
+        <div class="p-4 bg-green-100 rounded-lg border border-green-300">
+            <p class="text-sm text-on-surface font-semibold mb-1">Total Devengado</p>
+            <p class="text-2xl font-bold text-green-700">${{ nomina.total_devengado|floatformat:0 }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Deducciones del Empleado -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-600">remove_circle</span>
+            Descuentos/Deducciones
+        </h3>
+        <div class="space-y-3">
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Pensión (4%)</span>
+                <span class="font-semibold text-red-600">${{ nomina.descuento_pension|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Salud (4%)</span>
+                <span class="font-semibold text-red-600">${{ nomina.descuento_salud|floatformat:0 }}</span>
+            </div>
+            {% if nomina.descuento_fondo_solidaridad %}
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Fondo Solidaridad (1%)</span>
+                <span class="font-semibold text-red-600">${{ nomina.descuento_fondo_solidaridad|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+            {% if nomina.retenciones %}
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Retenciones en la Fuente</span>
+                <span class="font-semibold text-red-600">${{ nomina.retenciones|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+            {% if nomina.otros_descuentos %}
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Otros Descuentos</span>
+                <span class="font-semibold text-red-600">${{ nomina.otros_descuentos|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between pt-2 font-bold text-lg bg-red-50 px-3 py-2 rounded-lg">
+                <span class="text-on-surface">Total Descuentos</span>
+                <span class="text-red-600">${{ nomina.total_descuentos|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-600">business</span>
+            Aportes Patronales
+        </h3>
+        <div class="space-y-3">
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Pensión Patrón (12%)</span>
+                <span class="font-semibold text-orange-600">${{ nomina.aporte_pension_patronal|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">SENA (2%)</span>
+                <span class="font-semibold text-orange-600">${{ nomina.aporte_sena|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">ICBF (3%)</span>
+                <span class="font-semibold text-orange-600">${{ nomina.aporte_icbf|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">Caja Compensación (4%)</span>
+                <span class="font-semibold text-orange-600">${{ nomina.aporte_cajaComp|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-200">
+                <span class="text-on-surface-variant">ARL (Riesgo - Promedio)</span>
+                <span class="font-semibold text-orange-600">${{ nomina.aporte_arl|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between pt-2 font-bold text-lg bg-orange-50 px-3 py-2 rounded-lg">
+                <span class="text-on-surface">Total Aportes</span>
+                <span class="text-orange-600">${{ nomina.total_aportes_patronales|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen Final -->
+<div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg shadow-sm border-2 border-green-300 p-8 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="text-center">
+            <p class="text-sm text-on-surface-variant mb-2">Total Devengado</p>
+            <p class="text-3xl font-bold text-blue-600">${{ nomina.total_devengado|floatformat:0 }}</p>
+        </div>
+        <div class="text-center">
+            <p class="text-sm text-on-surface-variant mb-2">(-) Total Descuentos</p>
+            <p class="text-3xl font-bold text-red-600">${{ nomina.total_descuentos|floatformat:0 }}</p>
+        </div>
+        <div class="text-center lg:border-l-2 border-green-300">
+            <p class="text-sm text-on-surface-variant mb-2">Neto a Pagar</p>
+            <p class="text-4xl font-bold text-green-600">${{ nomina.total_neto|floatformat:0 }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Costo Total para la Empresa -->
+<div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6 mb-6">
+    <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-purple-600">trending_up</span>
+        Costo Total para la Empresa
+    </h3>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-blue-50 rounded-lg">
+            <p class="text-sm text-on-surface-variant mb-1">Salario Neto</p>
+            <p class="text-2xl font-bold text-blue-600">${{ nomina.total_neto|floatformat:0 }}</p>
+        </div>
+        <div class="p-4 bg-orange-50 rounded-lg">
+            <p class="text-sm text-on-surface-variant mb-1">Aportes Patronales</p>
+            <p class="text-2xl font-bold text-orange-600">${{ nomina.total_aportes_patronales|floatformat:0 }}</p>
+        </div>
+        <div class="p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
+            <p class="text-sm text-on-surface-variant mb-1 font-semibold">Costo Total Empresa</p>
+            <p class="text-2xl font-bold text-purple-600">${{ nomina.total_neto|add:nomina.total_aportes_patronales|floatformat:0 }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Notas -->
+{% if nomina.notas %}
+<div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+    <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-orange-600">note</span>
+        Notas y Observaciones
+    </h3>
+    <p class="text-on-surface whitespace-pre-wrap">{{ nomina.notas }}</p>
+</div>
+{% endif %}
+{% endblock %}

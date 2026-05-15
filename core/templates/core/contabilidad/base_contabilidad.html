@@ -1,0 +1,91 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Contabilidad - {% endblock %}
+
+{% block extra_head %}
+{% include "core/contabilidad/_bootstrap_compat.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 lg:ml-64 lg:mt-0 mt-16 overflow-x-hidden bg-surface min-h-screen">
+    <!-- Contenedor principal -->
+    <div class="p-4 lg:p-8 max-w-7xl mx-auto">
+        <!-- Header limpio y minimalista -->
+        <div class="mb-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/10">
+            <div>
+                <h1 class="font-headline font-bold text-2xl lg:text-3xl text-on-surface">Contabilidad</h1>
+                <p class="text-on-surface-variant text-sm mt-2">Nómina, impuestos y servicios</p>
+            </div>
+            {% if user.is_authenticated and is_admin %}
+            <a href="{% url 'contabilidad_dashboard' %}" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm">
+                <span class="material-symbols-outlined text-lg">dashboard</span>
+                <span class="hidden sm:inline">Dashboard</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Navegación de Contabilidad - Tabs limpios -->
+        <nav class="flex overflow-x-auto scrollbar-hide border-b border-outline-variant/15 mb-8 -mx-4 lg:mx-0 px-4 lg:px-0">
+            <a href="{% url 'contabilidad_dashboard' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if request.resolver_match.url_name == 'contabilidad_dashboard' %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">home</span>
+                <span class="hidden sm:inline">Dashboard</span>
+            </a>
+            <a href="{% url 'empleados_lista' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if 'empleado' in request.resolver_match.url_name %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">group</span>
+                <span class="hidden sm:inline">Personal</span>
+            </a>
+            <a href="{% url 'nomina_lista' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if 'nomina' in request.resolver_match.url_name %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">receipt</span>
+                <span class="hidden sm:inline">Nómina</span>
+            </a>
+            <a href="{% url 'obligaciones_fiscales_lista' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if 'obligacion' in request.resolver_match.url_name %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">warning</span>
+                <span class="hidden sm:inline">Obligaciones</span>
+            </a>
+            <a href="{% url 'contratos_mantenimiento_lista' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if 'contrato' in request.resolver_match.url_name %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">description</span>
+                <span class="hidden sm:inline">Mantenimiento</span>
+            </a>
+            <a href="{% url 'servicios_publicos_lista' %}" 
+               class="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 border-b-2 {% if 'servicio' in request.resolver_match.url_name %}border-primary text-primary{% else %}border-transparent text-on-surface-variant hover:text-on-surface{% endif %}">
+                <span class="material-symbols-outlined text-lg">water</span>
+                <span class="hidden sm:inline">Servicios</span>
+            </a>
+        </nav>
+
+        <!-- Alertas minimalistas -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-6 p-4 rounded-lg border-l-4 flex items-start justify-between gap-4 {% if message.tags == 'success' %}bg-green-50 border-l-green-600 text-green-900{% elif message.tags == 'error' %}bg-red-50 border-l-error text-error{% else %}bg-blue-50 border-l-blue-600 text-blue-900{% endif %}">
+            <div class="flex items-start gap-3 flex-1">
+                <span class="material-symbols-outlined flex-shrink-0 mt-0.5 text-lg">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}info{% endif %}
+                </span>
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-current opacity-60 hover:opacity-100 flex-shrink-0 transition-opacity">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Contenido principal -->
+        <div class="space-y-6">
+            {% block contabilidad_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Scrollbar personalizado */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { scrollbar-width: none; }
+</style>
+{% endblock %}

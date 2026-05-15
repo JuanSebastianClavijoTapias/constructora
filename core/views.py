@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models import Prefetch, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from datetime import date, datetime, timedelta
 
 from .forms import (
     HouseLoginForm,
@@ -18,6 +19,7 @@ from .forms import (
     UsuarioCasaForm,
 )
 from .models import Pago, PerfilUsuario, Propiedad, PropiedadImagen, SolicitudSoporte
+from .utils import admin_required, build_context, get_request_profile, visible_properties_for, get_or_create_profile, can_access_property
 
 
 COMMON_ISSUE_CATALOG = [
@@ -66,63 +68,8 @@ COMMON_ISSUE_CATALOG = [
 ]
 COMMON_ISSUE_MAP = {issue['category']: issue for issue in COMMON_ISSUE_CATALOG}
 
-
 def has_bootstrapped_users():
     return User.objects.exists()
-
-
-def get_or_create_profile(user):
-    defaults = {
-        'rol': PerfilUsuario.ROL_ADMIN if user.is_superuser else PerfilUsuario.ROL_INQUILINO,
-    }
-    profile, _ = PerfilUsuario.objects.get_or_create(user=user, defaults=defaults)
-    if user.is_superuser and profile.rol != PerfilUsuario.ROL_ADMIN:
-        profile.rol = PerfilUsuario.ROL_ADMIN
-        profile.save(update_fields=['rol'])
-    return profile
-
-
-def get_request_profile(request):
-    if not hasattr(request, '_cached_profile'):
-        request._cached_profile = get_or_create_profile(request.user)
-    return request._cached_profile
-
-
-def build_context(request, active_section, **extra):
-    profile = get_request_profile(request)
-    context = {
-        'active_section': active_section,
-        'is_admin': profile.es_admin,
-        'user_profile': profile,
-    }
-    context.update(extra)
-    return context
-
-
-def admin_required(view_func):
-    @wraps(view_func)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        profile = get_request_profile(request)
-        if not profile.es_admin:
-            messages.error(request, 'Esta seccion es solo para administracion.')
-            return redirect('dashboard')
-        return view_func(request, *args, **kwargs)
-
-    return wrapper
-
-
-def can_access_property(profile, propiedad):
-    return profile.es_admin or profile.propiedad_id == propiedad.id
-
-
-def visible_properties_for(profile):
-    queryset = Propiedad.objects.prefetch_related('imagenes', 'usuarios__user').order_by('nombre')
-    if profile.es_admin:
-        return queryset
-    if profile.propiedad_id:
-        return queryset.filter(pk=profile.propiedad_id)
-    return queryset.none()
 
 
 def visible_payments_for(profile):
@@ -252,7 +199,6 @@ def pagos(request):
 def soporte(request):
     profile = get_request_profile(request)
     propiedades_soporte = visible_properties_for(profile).prefetch_related(
-        Prefetch('usuarios', queryset=PerfilUsuario.objects.select_related('user').order_by('user__username')),
         Prefetch('solicitudes_soporte', queryset=SolicitudSoporte.objects.select_related('reportado_por').order_by('-creado_en')),
     )
     incidencias = visible_support_requests_for(profile)
@@ -452,34 +398,98 @@ def propiedad_editar(request, pk):
     )
 
 
-@admin_required
+@login_required
 def pago_crear(request):
+    profile = get_request_profile(request)
+    
+    # Los inquilinos solo pueden crear pagos para su propiedad
+    if profile.es_admin:
+        propiedad_queryset = Propiedad.objects.order_by('nombre')
+        es_inquilino = False
+    elif profile.propiedad_id:
+        propiedad_queryset = Propiedad.objects.filter(pk=profile.propiedad_id)
+        es_inquilino = True
+    else:
+        messages.error(request, 'No tienes una propiedad asociada para registrar pagos.')
+        return redirect('pagos')
+    
     form = PagoForm(
         request.POST or None,
-        propiedad_queryset=Propiedad.objects.order_by('nombre'),
+        propiedad_queryset=propiedad_queryset,
+        es_inquilino=es_inquilino,
     )
+    
+    # Si es inquilino, prellenar datos automáticamente
+    if es_inquilino and request.method == 'GET':
+        propiedad = profile.propiedad
+        initial_data = {
+            'propiedad': propiedad.id,
+            'inquilino_nombre': profile.nombre_mostrar,
+            'monto_mensual': propiedad.precio_mensual,
+            'estado': 'PAGADO',
+        }
+        form = PagoForm(
+            propiedad_queryset=propiedad_queryset,
+            es_inquilino=es_inquilino,
+            initial=initial_data,
+        )
+    
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        pago = form.save(commit=False)
+        # Validar que el usuario tenga acceso a la propiedad
+        if not can_access_property(profile, pago.propiedad):
+            messages.error(request, 'No puedes registrar pagos para esa propiedad.')
+            return redirect('pagos')
+        
+        # Si es inquilino, forzar estado a PAGADO
+        if es_inquilino:
+            pago.estado = 'PAGADO'
+        
+        pago.save()
         messages.success(request, 'Pago registrado correctamente.')
         return redirect('pagos')
 
+    is_tenant = not profile.es_admin
     return render(
         request,
         'core/pago_form.html',
-        build_context(request, 'pagos', form=form, titulo='Registrar pago'),
+        build_context(
+            request, 
+            'pagos', 
+            form=form, 
+            titulo='Registrar pago',
+            es_inquilino=is_tenant,
+        ),
     )
 
 
-@admin_required
+@login_required
 def pago_editar(request, pk):
+    profile = get_request_profile(request)
     pago = get_object_or_404(Pago, pk=pk)
+    
+    # Validar acceso
+    if not can_access_property(profile, pago.propiedad):
+        messages.error(request, 'No tienes permiso para editar este pago.')
+        return redirect('pagos')
+    
+    if profile.es_admin:
+        propiedad_queryset = Propiedad.objects.order_by('nombre')
+    else:
+        propiedad_queryset = Propiedad.objects.filter(pk=profile.propiedad_id)
+    
     form = PagoForm(
         request.POST or None,
         instance=pago,
-        propiedad_queryset=Propiedad.objects.order_by('nombre'),
+        propiedad_queryset=propiedad_queryset,
     )
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        pago = form.save(commit=False)
+        # Validar que el usuario siga teniendo acceso a la propiedad
+        if not can_access_property(profile, pago.propiedad):
+            messages.error(request, 'No puedes editar pagos para esa propiedad.')
+            return redirect('pagos')
+        pago.save()
         messages.success(request, 'Pago actualizado correctamente.')
         return redirect('pagos')
 

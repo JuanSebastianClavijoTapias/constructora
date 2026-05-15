@@ -1,0 +1,269 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}{{ empleado.nombre_completo }} - Detalles - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="mb-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/10">
+    <div>
+        <h1 class="font-headline font-bold text-2xl lg:text-3xl text-on-surface">{{ empleado.nombre_completo }}</h1>
+        <p class="text-on-surface-variant text-sm mt-2">Cédula: <span class="font-semibold text-on-surface">{{ empleado.cedula }}</span></p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'empleado_editar' empleado.id %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">edit</span>
+            <span>Editar</span>
+        </a>
+        <a href="{% url 'nomina_crear' empleado.id %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">receipt_long</span>
+            <span>Nómina</span>
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Información Personal -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">person</span>
+            Información Personal
+        </h3>
+        <div class="space-y-3">
+            <div>
+                <p class="text-sm text-on-surface-variant">Cargo</p>
+                <p class="font-medium text-on-surface">{{ empleado.get_tipo_empleado_display }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Email</p>
+                <p class="font-medium text-on-surface">{{ empleado.correo|default:"No registrado" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Teléfono</p>
+                <p class="font-medium text-on-surface">{{ empleado.telefono|default:"No registrado" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Estado</p>
+                <div class="mt-1">
+                    {% if empleado.activo %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+                            <span class="material-symbols-outlined text-base">check_circle</span>
+                            Activo
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+                            <span class="material-symbols-outlined text-base">cancel</span>
+                            Inactivo
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Laboral -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-600">badge</span>
+            Información Laboral
+        </h3>
+        <div class="space-y-3">
+            <div>
+                <p class="text-sm text-on-surface-variant">Tipo de Contrato</p>
+                <p class="font-medium text-on-surface">{{ empleado.get_tipo_contrato_display }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-on-surface-variant">Fecha de Inicio</p>
+                <p class="font-medium text-on-surface">{{ empleado.fecha_inicio_contrato|date:"d \d\e F \d\e Y" }}</p>
+            </div>
+            {% if empleado.fecha_fin_contrato %}
+            <div>
+                <p class="text-sm text-on-surface-variant">Fecha de Fin</p>
+                <p class="font-medium text-on-surface">{{ empleado.fecha_fin_contrato|date:"d \d\e F \d\e Y" }}</p>
+            </div>
+            {% endif %}
+            {% if empleado.propiedad %}
+            <div>
+                <p class="text-sm text-on-surface-variant">Propiedad Asignada</p>
+                <p class="font-medium text-on-surface">{{ empleado.propiedad.nombre }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Información Salarial -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-600">attach_money</span>
+            Salario Base 2026
+        </h3>
+        <p class="text-3xl font-bold text-green-600">${{ empleado.salario_mensual_base|floatformat:0 }}</p>
+        <p class="text-sm text-on-surface-variant mt-2">Por mes (COP)</p>
+        <p class="text-xs text-gray-500 mt-3">
+            <strong>SMMLV 2026:</strong> ${{ smmlv_2026|floatformat:0 }} COP<br>
+            {% if empleado.salario_mensual_base >= smmlv_2026 %}
+            <span class="text-green-600">✓ Cumple con el salario mínimo</span>
+            {% else %}
+            <span class="text-red-600">✗ Por debajo del salario mínimo</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-600">calendar_today</span>
+            Prestaciones 2026
+        </h3>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">Prima (1/2 mes):</span>
+                <span class="font-semibold">${{ prima_semestral|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">Vacaciones (1/12 año):</span>
+                <span class="font-semibold">${{ vacaciones_anuales|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">Cesantías (1/12 año):</span>
+                <span class="font-semibold">${{ cesantias_anuales|floatformat:0 }}</span>
+            </div>
+            <div class="pt-2 border-t border-gray-200 flex justify-between">
+                <span class="text-on-surface font-semibold">Total Anual Estimado:</span>
+                <span class="font-bold text-orange-600">${{ total_prestaciones_anuales|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-600">assignment</span>
+            Impuestos 2026
+        </h3>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">Aportes SENA (0.5%):</span>
+                <span class="font-semibold">${{ aportes_sena|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">ICBF (3%):</span>
+                <span class="font-semibold">${{ icbf|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">ARL (0.5% - promedio):</span>
+                <span class="font-semibold">${{ arl_promedio|floatformat:0 }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-on-surface-variant">Pensión (4%):</span>
+                <span class="font-semibold">${{ pensión|floatformat:0 }}</span>
+            </div>
+            <div class="pt-2 border-t border-gray-200 flex justify-between">
+                <span class="text-on-surface font-semibold">Total Descuentos (8%):</span>
+                <span class="font-bold text-red-600">${{ total_descuentos|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historial de Nóminas -->
+<div class="bg-white rounded-lg shadow-sm border border-outline-variant/20">
+    <div class="p-6 border-b border-outline-variant/20 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">history</span>
+            Historial de Nóminas
+        </h3>
+        <a href="{% url 'nomina_crear' empleado.id %}" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-base">add</span>
+            Nueva
+        </a>
+    </div>
+    {% if nominas %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-outline-variant/20 bg-gray-50">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-on-surface-variant">Período</th>
+                    <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Salario Base</th>
+                    <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Deducciones</th>
+                    <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Neto</th>
+                    <th class="text-center py-3 px-4 text-sm font-semibold text-on-surface-variant">Estado</th>
+                    <th class="text-center py-3 px-4 text-sm font-semibold text-on-surface-variant">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nomina in nominas %}
+                <tr class="border-b border-outline-variant/10 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-on-surface font-medium">{{ nomina.periodo_mes|date:"M/Y" }}</td>
+                    <td class="py-3 px-4 text-right text-on-surface">${{ nomina.total_salario|floatformat:0 }}</td>
+                    <td class="py-3 px-4 text-right text-red-600 font-semibold">${{ nomina.total_deducciones|floatformat:0 }}</td>
+                    <td class="py-3 px-4 text-right font-bold text-green-600">${{ nomina.total_neto|floatformat:0 }}</td>
+                    <td class="py-3 px-4 text-center">
+                        {% if nomina.estado == 'PAGADA' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                                <span class="material-symbols-outlined text-sm">check</span>
+                                Pagada
+                            </span>
+                        {% elif nomina.estado == 'CONFIRMADA' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                                <span class="material-symbols-outlined text-sm">done_all</span>
+                                Confirmada
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                {{ nomina.get_estado_display }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <a href="{% url 'nomina_detalle' nomina.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-blue-100 text-blue-600 hover:text-blue-900 transition-colors">
+                            <span class="material-symbols-outlined text-base">visibility</span>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-6 text-center">
+        <p class="text-on-surface-variant mb-4">No hay nóminas registradas para este empleado.</p>
+        <a href="{% url 'nomina_crear' empleado.id %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined">add</span>
+            Crear primera nómina
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Equipos/Uniformes -->
+{% if equipos %}
+<div class="mt-6 bg-white rounded-lg shadow-sm border border-outline-variant/20">
+    <div class="p-6 border-b border-outline-variant/20">
+        <h3 class="text-lg font-semibold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-600">checkroom</span>
+            Equipos y Uniformes
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-outline-variant/20 bg-gray-50">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-on-surface-variant">Descripción</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-on-surface-variant">Cantidad</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-on-surface-variant">Fecha Asignación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipo in equipos %}
+                <tr class="border-b border-outline-variant/10 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-on-surface">{{ equipo.descripcion }}</td>
+                    <td class="py-3 px-4 text-on-surface">{{ equipo.cantidad }}</td>
+                    <td class="py-3 px-4 text-on-surface-variant">{{ equipo.fecha_asignacion|date:"d/m/Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

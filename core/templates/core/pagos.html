@@ -9,16 +9,42 @@
             <h2 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">Historial de Pagos</h2>
             <p class="font-body text-on-surface-variant mt-2">Control de transacciones y mensualidades.</p>
         </div>
-        {% if user_profile.rol == 'ADMIN' %}
         <a href="{% url 'pago_crear' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-sm self-start sm:self-auto group">
             <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">receipt_long</span>
             Registrar Pago
         </a>
-        {% endif %}
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Ingresos</span>
+                <span class="material-symbols-outlined text-green-600">trending_up</span>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tighter text-green-600">${{ total_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-on-surface-variant mt-2">Pagos completados</p>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Pendiente</span>
+                <span class="material-symbols-outlined text-orange-600">schedule</span>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tighter text-orange-600">${{ total_upcoming|floatformat:2 }}</p>
+            <p class="text-xs text-on-surface-variant mt-2">Por cobrar</p>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Atrasados</span>
+                <span class="material-symbols-outlined text-error">priority_high</span>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tighter text-error">${{ total_outstanding|floatformat:2 }}</p>
+            <p class="text-xs text-on-surface-variant mt-2">Vencidos</p>
+        </div>
     </div>
 
     <div class="bg-surface-container-lowest rounded-2xl editorial-shadow overflow-hidden">
-        {% if pagos %}
+        {% if pagos_list %}
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
@@ -26,30 +52,39 @@
                         <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Propiedad</th>
                         <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Inquilino</th>
                         <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Monto</th>
-                        <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Fecha</th>
-                        <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Concepto</th>
+                        <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Fecha Límite</th>
+                        <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Método</th>
+                        <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant text-center">Estado</th>
                         {% if user_profile.rol == 'ADMIN' %}
                         <th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-on-surface-variant text-right">Acciones</th>
                         {% endif %}
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/10">
-                    {% for pago in pagos %}
+                    {% for pago in pagos_list %}
                     <tr class="hover:bg-surface-container-low/30 transition-colors">
                         <td class="px-6 py-5">
                             <span class="font-bold text-sm text-on-surface">{{ pago.propiedad.nombre }}</span>
                         </td>
                         <td class="px-6 py-5">
-                            <span class="text-sm font-medium">{{ pago.inquilino.nombre }}</span>
+                            <span class="text-sm font-medium">{{ pago.inquilino_nombre }}</span>
                         </td>
                         <td class="px-6 py-5">
-                            <span class="font-extrabold tracking-tight text-on-surface">${{ pago.monto|floatformat:2 }}</span>
+                            <span class="font-extrabold tracking-tight text-on-surface">${{ pago.monto_mensual|floatformat:2 }}</span>
                         </td>
                         <td class="px-6 py-5">
-                            <span class="text-sm text-on-surface-variant">{{ pago.fecha|date:"d M, Y" }}</span>
+                            <span class="text-sm text-on-surface-variant">{{ pago.fecha_limite|date:"d M, Y" }}</span>
                         </td>
                         <td class="px-6 py-5">
-                            <span class="text-sm font-medium">{{ pago.descripcion }}</span>
+                            <span class="text-sm font-medium text-on-surface-variant">{{ pago.metodo_pago|default:"—" }}</span>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <span class="text-xs font-bold px-3 py-1.5 rounded-full inline-block uppercase tracking-wide
+                                {% if pago.estado == 'PAGADO' %}bg-green-100 text-green-800
+                                {% elif pago.estado == 'ATRASADO' %}bg-error/20 text-error
+                                {% else %}bg-orange-100 text-orange-800{% endif %}">
+                                {{ pago.get_estado_display }}
+                            </span>
                         </td>
                         {% if user_profile.rol == 'ADMIN' %}
                         <td class="px-6 py-5 text-right space-x-2">
@@ -68,6 +103,10 @@
             <span class="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">money_off</span>
             <h3 class="font-headline text-xl font-bold">Sin transacciones</h3>
             <p class="text-on-surface-variant mt-2">No hay pagos registrados en este momento.</p>
+            <a href="{% url 'pago_crear' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors mt-4">
+                <span class="material-symbols-outlined">add</span>
+                Crear Primer Pago
+            </a>
         </div>
         {% endif %}
     </div>

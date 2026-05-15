@@ -1,49 +1,703 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Pago - Haven{% endblock %}
+{% block title %}Registrar Pago - Haven{% endblock %}
 
 {% block content %}
-<section class="flex items-center justify-center min-h-[calc(100vh-140px)] p-6">
-    <div class="bg-surface-container-lowest p-8 md:p-12 rounded-[2rem] editorial-shadow w-full max-w-lg">
-        <div class="mb-10">
-            <a href="{% url 'pagos' %}" class="inline-flex items-center text-sm font-bold text-on-surface-variant hover:text-primary transition-colors mb-6 group">
-                <span class="material-symbols-outlined text-lg mr-1 group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                Atrás a pagos
+<section class="bg-gradient-to-br from-surface via-surface to-surface-container-low min-h-screen p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'pagos' %}" class="inline-flex items-center text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors mb-6">
+                <span class="material-symbols-outlined text-lg mr-2">arrow_back</span>
+                Volver al historial
             </a>
-            <h1 class="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">{% if form.instance.pk %}Modificar Pago{% else %}Registrar Pago{% endif %}</h1>
-            <p class="font-body text-on-surface-variant mt-2">Detalles de la transacción económica.</p>
+            <h1 class="font-headline text-4xl font-extrabold tracking-tighter text-on-surface mb-2">
+                {% if es_inquilino %}Registrar mi pago{% else %}{% if form.instance.pk %}Modificar registro de pago{% else %}Registrar un pago{% endif %}{% endif %}
+            </h1>
+            <p class="text-on-surface-variant text-lg">
+                {% if es_inquilino %}Completa los datos de tu transacción{% else %}Carga los detalles de la transacción económica{% endif %}
+            </p>
         </div>
 
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-            <div class="p-4 bg-error/10 text-error rounded-xl text-sm font-medium">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
+        {% if es_inquilino %}
+        <!-- VERSIÓN SIMPLIFICADA PARA INQUILINOS -->
+        <div class="max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Resumen (Derecha) -->
+                <div class="lg:col-span-1 order-2 lg:order-1">
+                    <div class="sticky top-8 bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-2 border-primary/10">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Tu pago</h2>
+                        
+                        <!-- Propiedad -->
+                        <div class="mb-6 pb-6 border-b border-outline-variant/20">
+                            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Casa</p>
+                            <p class="text-lg font-bold text-on-surface">{{ user_profile.propiedad.nombre }}</p>
+                        </div>
 
-            {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}" class="block text-xs font-bold mb-1 ml-1 tracking-wide uppercase text-on-surface-variant">
-                    {{ field.label }}
-                </label>
-                <div class="mt-1">
-                    {{ field }}
+                        <!-- Dirección -->
+                        <div class="mb-6 pb-6 border-b border-outline-variant/20">
+                            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Ubicación</p>
+                            <p class="text-sm text-on-surface">{{ user_profile.propiedad.direccion }}</p>
+                        </div>
+
+                        <!-- Monto -->
+                        <div class="mb-6 pb-6 border-b border-outline-variant/20">
+                            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Monto mensual</p>
+                            <p class="text-4xl font-extrabold tracking-tighter text-primary">${{ user_profile.propiedad.precio_mensual|floatformat:2 }}</p>
+                        </div>
+
+                        <!-- Estatus -->
+                        <div class="bg-green-100/60 text-green-800 p-4 rounded-lg flex items-start gap-3 text-xs mb-6">
+                            <span class="material-symbols-outlined text-lg flex-shrink-0">check_circle</span>
+                            <div>
+                                <p class="font-bold">Pago completado</p>
+                                <p class="text-[11px] opacity-80">Será marcado como pagado</p>
+                            </div>
+                        </div>
+
+                        <!-- Seguridad -->
+                        <div class="text-center pt-4 border-t border-outline-variant/20">
+                            <p class="text-xs text-on-surface-variant flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-sm">lock</span>
+                                Conexión segura
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                {% if field.help_text %}
-                <p class="text-[11px] text-on-surface-variant mt-1.5 ml-1">{{ field.help_text }}</p>
-                {% endif %}
-                {% if field.errors %}
-                <div class="text-error text-xs mt-1.5 ml-1 font-medium">{{ field.errors.0 }}</div>
-                {% endif %}
-            </div>
-            {% endfor %}
 
-            <button type="submit" class="w-full py-4 bg-primary text-on-primary rounded-xl font-bold tracking-wide hover:bg-primary/90 transition-colors mt-8 shadow-sm">
-                Guardar Transacción
-            </button>
-        </form>
+                <!-- Formulario Simplificado (Izquierda) -->
+                <div class="lg:col-span-2 order-1 lg:order-2">
+                    <form method="post" class="space-y-8" id="payment-form">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="p-4 bg-error/10 text-error rounded-xl text-sm font-medium flex items-start gap-3 border border-error/20">
+                            <span class="material-symbols-outlined flex-shrink-0">error</span>
+                            <div>{{ form.non_field_errors }}</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Método de Pago (ÚNICO CAMPO VISIBLE PARA INQUILINOS) -->
+                        <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">payment</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-on-surface">¿Cómo deseas pagar?</h3>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.metodo_pago.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    {{ form.metodo_pago.label }}
+                                </label>
+                                {{ form.metodo_pago }}
+                                {% if form.metodo_pago.errors %}
+                                <p class="text-error text-sm mt-2 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-lg">error</span>
+                                    {{ form.metodo_pago.errors.0 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Fecha Límite (Si es necesario) -->
+                        {% if form.fecha_limite.value %}
+                        <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary/60">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">calendar_today</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-on-surface">Fecha de pago</h3>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.fecha_limite.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    {{ form.fecha_limite.label }}
+                                </label>
+                                {{ form.fecha_limite }}
+                                {% if form.fecha_limite.errors %}
+                                <p class="text-error text-sm mt-2">{{ form.fecha_limite.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Campos ocultos -->
+                        {{ form.propiedad }}
+                        {{ form.inquilino_nombre }}
+                        {{ form.monto_mensual }}
+                        {{ form.estado }}
+
+                        <!-- Botones -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-8">
+                            <button type="submit" class="flex-1 py-4 px-6 bg-primary text-on-primary rounded-xl font-bold text-lg hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-3 group">
+                                <span class="material-symbols-outlined group-hover:animate-pulse">payment</span>
+                                Confirmar Pago
+                            </button>
+                            <a href="{% url 'pagos' %}" class="flex-1 py-4 px-6 bg-surface-container-low text-on-surface rounded-xl font-bold text-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">close</span>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- VERSIÓN COMPLETA PARA ADMINISTRADORES -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Resumen de Pago (Derecha) -->
+            <div class="lg:col-span-1 order-2 lg:order-1">
+                <div class="sticky top-8 bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-2 border-primary/10">
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Resumen del Pago</h2>
+                    
+                    <!-- Propiedad Preview -->
+                    <div class="mb-6 pb-6 border-b border-outline-variant/20">
+                        <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Propiedad</p>
+                        <p class="text-lg font-bold text-on-surface" id="property-name">Selecciona una propiedad</p>
+                    </div>
+
+                    <!-- Monto -->
+                    <div class="mb-6 pb-6 border-b border-outline-variant/20">
+                        <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Monto a pagar</p>
+                        <p class="text-4xl font-extrabold tracking-tighter text-primary" id="payment-amount">$0.00</p>
+                    </div>
+
+                    <!-- Detalles -->
+                    <div class="space-y-4 mb-6 pb-6 border-b border-outline-variant/20">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-on-surface-variant">Subtotal</span>
+                            <span class="font-semibold text-on-surface" id="subtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-on-surface-variant">Impuestos (0%)</span>
+                            <span class="font-semibold text-on-surface">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-xl mb-6">
+                        <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Total</p>
+                        <p class="text-3xl font-extrabold text-primary" id="total-amount">$0.00</p>
+                    </div>
+
+                    <!-- Seguridad -->
+                    <div class="bg-green-100/60 text-green-800 p-4 rounded-lg flex items-start gap-3 text-xs">
+                        <span class="material-symbols-outlined text-lg flex-shrink-0">verified_user</span>
+                        <div>
+                            <p class="font-bold">Pago seguro</p>
+                            <p class="text-[11px] opacity-80">Tus datos están protegidos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario Completo (Izquierda) -->
+            <div class="lg:col-span-2 order-1 lg:order-2">
+                <form method="post" class="space-y-8" id="payment-form">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="p-4 bg-error/10 text-error rounded-xl text-sm font-medium flex items-start gap-3 border border-error/20">
+                        <span class="material-symbols-outlined flex-shrink-0">error</span>
+                        <div>{{ form.non_field_errors }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- PASO 1: Información de la Propiedad -->
+                    <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="text-sm font-bold text-primary">1</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-on-surface">Propiedad a pagar</h3>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.propiedad.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                {{ form.propiedad.label }}
+                            </label>
+                            {{ form.propiedad }}
+                            {% if form.propiedad.errors %}
+                            <p class="text-error text-sm mt-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-lg">error</span>
+                                {{ form.propiedad.errors.0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- PASO 2: Información del Inquilino -->
+                    <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary/60">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="text-sm font-bold text-primary">2</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-on-surface">Datos del pagador</h3>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.inquilino_nombre.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                {{ form.inquilino_nombre.label }}
+                            </label>
+                            {{ form.inquilino_nombre }}
+                            {% if form.inquilino_nombre.errors %}
+                            <p class="text-error text-sm mt-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-lg">error</span>
+                                {{ form.inquilino_nombre.errors.0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- PASO 3: Detalles de Pago -->
+                    <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="text-sm font-bold text-primary">3</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-on-surface">Monto y fecha</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.monto_mensual.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    💰 {{ form.monto_mensual.label }}
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-on-surface-variant">$</span>
+                                    {{ form.monto_mensual }}
+                                </div>
+                                {% if form.monto_mensual.errors %}
+                                <p class="text-error text-sm mt-2 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-lg">error</span>
+                                    {{ form.monto_mensual.errors.0 }}
+                                </p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.fecha_limite.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    📅 {{ form.fecha_limite.label }}
+                                </label>
+                                {{ form.fecha_limite }}
+                                {% if form.fecha_limite.errors %}
+                                <p class="text-error text-sm mt-2 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-lg">error</span>
+                                    {{ form.fecha_limite.errors.0 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASO 4: Método de Pago -->
+                    <div class="bg-surface-container-lowest rounded-2xl editorial-shadow p-8 border-l-4 border-primary/20">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="text-sm font-bold text-primary">4</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-on-surface">Método de pago</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.metodo_pago.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    {{ form.metodo_pago.label }}
+                                </label>
+                                {{ form.metodo_pago }}
+                                {% if form.metodo_pago.errors %}
+                                <p class="text-error text-sm mt-2">{{ form.metodo_pago.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.estado.id_for_label }}" class="block text-sm font-bold mb-3 text-on-surface">
+                                    {{ form.estado.label }}
+                                </label>
+                                {{ form.estado }}
+                                {% if form.estado.errors %}
+                                <p class="text-error text-sm mt-2">{{ form.estado.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-8">
+                        <button type="submit" class="flex-1 py-4 px-6 bg-primary text-on-primary rounded-xl font-bold text-lg hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-3 group">
+                            <span class="material-symbols-outlined group-hover:animate-pulse">{% if form.instance.pk %}check_circle{% else %}payment{% endif %}</span>
+                            {% if form.instance.pk %}Actualizar Pago{% else %}Confirmar Pago{% endif %}
+                        </button>
+                        <a href="{% url 'pagos' %}" class="flex-1 py-4 px-6 bg-surface-container-low text-on-surface rounded-xl font-bold text-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">close</span>
+                            Cancelar
+                        </a>
+                    </div>
+
+                    <!-- Footer de seguridad -->
+                    <div class="text-center pt-6 border-t border-outline-variant/20">
+                        <p class="text-xs text-on-surface-variant flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">lock</span>
+                            Conexión encriptada • Datos protegidos • Cumplimiento PCI
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const propiedadSelect = document.getElementById('{{ form.propiedad.id_for_label }}');
+    const montoInput = document.getElementById('{{ form.monto_mensual.id_for_label }}');
+    
+    function updateSummary() {
+        const monto = parseFloat(montoInput.value) || 0;
+        const formattedMonto = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 2
+        }).format(monto);
+        
+        document.getElementById('payment-amount').textContent = formattedMonto;
+        document.getElementById('subtotal').textContent = formattedMonto;
+        document.getElementById('total-amount').textContent = formattedMonto;
+    }
+    
+    if (propiedadSelect) {
+        propiedadSelect.addEventListener('change', updateSummary);
+    }
+    
+    if (montoInput) {
+        montoInput.addEventListener('input', updateSummary);
+        montoInput.addEventListener('change', updateSummary);
+    }
+    
+    // Actualizar al cargar la página
+    updateSummary();
+});
+</script>
+
+<style scoped>
+/* Formularios base */
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 2px solid #acb3b4;
+    background-color: #f2f4f4;
+    padding: 0.75rem 1rem;
+    color: #2d3435;
+    font-weight: 500;
+    transition: all 150ms ease;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus {
+    border-color: #5f5e5e;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(95, 94, 94, 0.2);
+}
+
+input[type="number"] {
+    padding-left: 2rem;
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+/* Tarjetas y contenedores */
+.bg-surface-container-lowest {
+    background-color: #ffffff;
+    min-height: auto;
+}
+
+.bg-surface-container-low {
+    background-color: #f2f4f4;
+}
+
+.rounded-2xl {
+    border-radius: 1rem;
+}
+
+.rounded-xl {
+    border-radius: 0.75rem;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.border-2 {
+    border-width: 2px;
+}
+
+.border {
+    border-width: 1px;
+}
+
+.border-l-4 {
+    border-left-width: 4px;
+    border-left-color: inherit;
+}
+
+.border-outline-variant {
+    border-color: #acb3b4;
+}
+
+.border-primary {
+    border-color: #5f5e5e;
+}
+
+.border-primary\/10 {
+    border-color: rgba(95, 94, 94, 0.1);
+}
+
+.border-outline-variant\/20 {
+    border-color: rgba(172, 179, 180, 0.2);
+}
+
+.editorial-shadow {
+    box-shadow: 0 40px 60px -20px rgba(45, 52, 53, 0.05);
+}
+
+/* Espaciado */
+.p-4 { padding: 1rem; }
+.p-8 { padding: 2rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.pb-6 { padding-bottom: 1.5rem; }
+.pt-4 { padding-top: 1rem; }
+.pt-6 { padding-top: 1.5rem; }
+.pt-8 { padding-top: 2rem; }
+
+/* Gaps */
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.space-y-8 > * + * {
+    margin-top: 2rem;
+}
+
+/* Flex */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1 1 0%; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* Grid */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Dimensiones */
+.w-full { width: 100%; }
+.w-10 { width: 2.5rem; }
+.h-10 { height: 2.5rem; }
+
+/* Posición */
+.absolute { position: absolute; }
+.relative { position: relative; }
+.sticky { position: sticky; }
+.top-8 { top: 2rem; }
+.left-4 { left: 1rem; }
+.right { right: 0; }
+.top-1\/2 { top: 50%; }
+
+.order-1 { order: 1; }
+.order-2 { order: 2; }
+
+/* Transform */
+.-translate-y-1\/2 {
+    transform: translateY(-50%);
+}
+
+.scale-105 {
+    scale: 1.05;
+}
+
+/* Transiciones */
+.transition-all { transition: all 150ms ease; }
+.transition-colors { transition: color, background-color, border-color; transition-duration: 150ms; }
+.duration-300 { transition-duration: 300ms; }
+
+/* Hover y focus */
+.hover\:bg-primary\/90:hover {
+    background-color: rgba(95, 94, 94, 0.9);
+}
+
+.hover\:bg-surface-container-high:hover {
+    background-color: #e4e9ea;
+}
+
+.hover\:scale-105:hover {
+    scale: 1.05;
+}
+
+.hover\:shadow-xl:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.group-hover\:animate-pulse:hover {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Sombras */
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+/* Texto */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-lg { font-size: 1.125rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+
+.uppercase { text-transform: uppercase; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
+.tracking-wider { letter-spacing: 0.05em; }
+
+/* Colores de texto */
+.text-on-surface { color: #2d3435; }
+.text-on-surface-variant { color: #596061; }
+.text-primary { color: #5f5e5e; }
+.text-on-primary { color: #faf7f6; }
+.text-error { color: #b3261e; }
+
+/* Colores de fondo */
+.bg-primary { background-color: #5f5e5e; }
+.bg-surface { background-color: #f9f9f9; }
+.bg-surface-container-lowest { background-color: #ffffff; }
+.bg-surface-container-low { background-color: #f2f4f4; }
+.bg-surface-container-high { background-color: #e4e9ea; }
+.bg-surface-container-highest { background-color: #e4e9ea; }
+.bg-error\/10 { background-color: rgba(159, 64, 61, 0.1); }
+.bg-green-100\/60 { background-color: rgba(220, 253, 231, 0.6); }
+.text-green-800 { color: #22543d; }
+
+.bg-gradient-to-br {
+    background-image: linear-gradient(135deg, #f9f9f9, #f2f4f4, #f9f9f9);
+}
+
+.from-surface {
+    --gradient-from: #f9f9f9;
+}
+
+.via-surface {
+    --gradient-via: #f9f9f9;
+}
+
+.to-surface-container-low {
+    --gradient-to: #f2f4f4;
+}
+
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, rgba(95, 94, 94, 0.1), rgba(95, 94, 94, 0.05));
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .md\:p-8 { padding: 2rem; }
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .lg\:col-span-1 { grid-column: span 1; }
+    .lg\:col-span-2 { grid-column: span 2; }
+    .lg\:order-1 { order: 1; }
+    .lg\:order-2 { order: 2; }
+}
+
+@media (max-width: 768px) {
+    .sm\:flex-row {
+        flex-direction: row;
+    }
+}
+
+/* Flex directiones adicionales */
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+
+/* Anchos */
+.max-w-5xl {
+    max-width: 64rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.max-w-2xl {
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Opacity */
+.opacity-80 { opacity: 0.8; }
+
+/* Min altura */
+.min-h-screen { min-height: 100vh; }
+
+/* Placeholder */
+input::placeholder {
+    color: #596061;
+    opacity: 0.6;
+}
+</style>
 {% endblock %}

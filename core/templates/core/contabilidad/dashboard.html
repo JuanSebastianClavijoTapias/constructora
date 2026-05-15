@@ -1,0 +1,192 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}Dashboard Contable - {% endblock %}
+
+{% block contabilidad_content %}
+<!-- Header -->
+<div class="mb-8 pb-6 border-b border-outline-variant/10">
+    <h1 class="font-headline font-bold text-3xl text-on-surface mb-2">Dashboard Contable</h1>
+    <p class="text-on-surface-variant">Período: <span class="font-semibold">{{ fecha_reporte|date:"F \\d\\e Y" }}</span></p>
+</div>
+
+<!-- Tarjetas de Resumen - 5 Columnas -->
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Total Empleados -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-on-surface-variant mb-1">Total Empleados</p>
+                <p class="text-3xl font-bold text-blue-600">{{ empleados_activos.count|default:0 }}</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <span class="material-symbols-outlined text-blue-600 text-2xl">group</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nóminas Pagadas -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-on-surface-variant mb-1">Nóminas Pagadas</p>
+                <p class="text-3xl font-bold text-green-600">{{ nominas_pagadas }}<span class="text-lg text-gray-400">/{{ total_nominas_mes }}</span></p>
+                <p class="text-xs text-on-surface-variant mt-2">${{ total_nómina|floatformat:0 }}</p>
+            </div>
+            <div class="p-3 bg-green-50 rounded-lg">
+                <span class="material-symbols-outlined text-green-600 text-2xl">check_circle</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nóminas Pendientes -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-on-surface-variant mb-1">Nóminas Pendientes</p>
+                <p class="text-3xl font-bold text-amber-600">{{ nominas_pendientes }}</p>
+                <p class="text-xs text-on-surface-variant mt-2">Por pagar</p>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-lg">
+                <span class="material-symbols-outlined text-amber-600 text-2xl">schedule</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Obligaciones Próximas -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-on-surface-variant mb-1">Obligaciones Próximas</p>
+                <p class="text-3xl font-bold text-red-600">{{ proximos_vencimientos.count|default:0 }}</p>
+                <p class="text-xs text-on-surface-variant mt-2">Próximos 30 días</p>
+            </div>
+            <div class="p-3 bg-red-50 rounded-lg">
+                <span class="material-symbols-outlined text-red-600 text-2xl">warning</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Gastos -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-on-surface-variant mb-1">Total Gastos</p>
+                <p class="text-3xl font-bold text-purple-600">${{ total_gastos_mes|floatformat:0 }}</p>
+                <p class="text-xs text-on-surface-variant mt-2">Mes actual</p>
+            </div>
+            <div class="p-3 bg-purple-50 rounded-lg">
+                <span class="material-symbols-outlined text-purple-600 text-2xl">trending_up</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila 2: Alertas y Resumen -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Alertas (2/3) -->
+    <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-600">notification_important</span>
+            Alertas Importantes
+        </h3>
+        
+        {% if alertas %}
+            <div class="space-y-3">
+                {% for alerta in alertas %}
+                <div class="p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <p class="font-semibold text-on-surface">{{ alerta.nombre_obligacion }}</p>
+                            <p class="text-sm text-on-surface-variant mt-1">{{ alerta.descripcion }}</p>
+                            <p class="text-xs text-red-600 mt-2">Vencida: {{ alerta.fecha_vencimiento|date:"d \d\e F" }}</p>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                            Vencida
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200 flex items-center gap-3">
+                <span class="material-symbols-outlined text-green-600 text-2xl">verified</span>
+                <p class="text-on-surface font-medium">No hay alertas pendientes</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Resumen Financiero (1/3) -->
+    <div class="bg-white rounded-lg shadow-sm border border-outline-variant/20 p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">pie_chart</span>
+            Resumen del Mes
+        </h3>
+        
+        <div class="space-y-4">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm text-on-surface-variant">Nómina</p>
+                    <p class="font-semibold text-on-surface">${{ total_nómina|floatformat:0 }}</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2" style="background-color: rgba(59, 130, 246, 0.2);">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: 35%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm text-on-surface-variant">Servicios</p>
+                    <p class="font-semibold text-on-surface">${{ total_servicios|floatformat:0 }}</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2" style="background-color: rgba(99, 102, 241, 0.2);">
+                    <div class="bg-indigo-600 h-2 rounded-full" style="width: 25%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm text-on-surface-variant">Mantenimiento</p>
+                    <p class="font-semibold text-on-surface">${{ total_mantenimiento|floatformat:0 }}</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2" style="background-color: rgba(251, 191, 36, 0.2);">
+                    <div class="bg-amber-500 h-2 rounded-full" style="width: 40%;"></div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <p class="font-semibold text-on-surface">Total</p>
+                    <p class="text-lg font-bold text-purple-600">${{ total_gastos_mes|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exportar Reportes -->
+<div class="mb-8 pb-6 border-b border-outline-variant/10">
+    <h3 class="text-lg font-semibold text-on-surface mb-4">Exportar Reportes</h3>
+    
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'reporte_excel' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">table_chart</span>
+            <span>Reporte Excel</span>
+        </a>
+
+        <a href="{% url 'reporte_pdf' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+            <span>Reporte PDF</span>
+        </a>
+
+        <a href="{% url 'nomina_excel' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">attach_money</span>
+            <span>Nóminas Excel</span>
+        </a>
+
+        <a href="{% url 'obligaciones_excel' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">assignment</span>
+            <span>Obligaciones Excel</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

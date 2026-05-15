@@ -1,0 +1,189 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Personal{% else %}Registrar Personal{% endif %} - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6 pb-4 border-b border-outline-variant/10">
+        <h2 class="font-headline font-bold text-2xl text-on-surface">
+            {% if form.instance.pk %}
+                <span class="material-symbols-outlined align-middle mr-2">edit</span>
+                Editar Personal
+            {% else %}
+                <span class="material-symbols-outlined align-middle mr-2">person_add</span>
+                Registrar Personal
+            {% endif %}
+        </h2>
+    </div>
+
+    <!-- Formulario -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Datos Personales -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Datos Personales</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div>
+                    <label for="{{ form.nombre_completo.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Nombre Completo
+                    </label>
+                    {{ form.nombre_completo }}
+                    {% if form.nombre_completo.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.nombre_completo.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.cedula.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Cédula
+                        </label>
+                        {{ form.cedula }}
+                        {% if form.cedula.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.cedula.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.telefono.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Teléfono
+                        </label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.telefono.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.correo.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Correo Electrónico
+                    </label>
+                    {{ form.correo }}
+                    {% if form.correo.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.correo.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Información Laboral -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Información Laboral</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.tipo_empleado.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Tipo de Personal
+                        </label>
+                        {{ form.tipo_empleado }}
+                        {% if form.tipo_empleado.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.tipo_empleado.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.tipo_contrato.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Tipo de Contrato
+                        </label>
+                        {{ form.tipo_contrato }}
+                        {% if form.tipo_contrato.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.tipo_contrato.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.salario_mensual_base.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Salario Mensual Base (COP)
+                    </label>
+                    {{ form.salario_mensual_base }}
+                    <p class="text-xs text-on-surface-variant mt-1">SMMLV 2024: $1.600.000</p>
+                    {% if form.salario_mensual_base.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.salario_mensual_base.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.fecha_inicio_contrato.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Fecha Inicio Contrato
+                        </label>
+                        {{ form.fecha_inicio_contrato }}
+                        {% if form.fecha_inicio_contrato.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.fecha_inicio_contrato.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.fecha_fin_contrato.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Fecha Fin Contrato (opcional)
+                        </label>
+                        {{ form.fecha_fin_contrato }}
+                        {% if form.fecha_fin_contrato.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.fecha_fin_contrato.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Estado -->
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/10">
+            {{ form.activo }}
+            <label for="{{ form.activo.id_for_label }}" class="text-sm font-medium text-on-surface cursor-pointer">
+                Empleado Activo
+            </label>
+        </div>
+
+        <!-- Errores generales -->
+        {% if form.non_field_errors %}
+        <div class="p-4 rounded-lg bg-red-50 border-l-4 border-l-error">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm text-error font-medium">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Botones de acción -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-outline-variant/10">
+            <a href="{% url 'empleados_lista' %}" class="px-5 py-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container-highest transition-colors font-medium text-sm">
+                Cancelar
+            </a>
+            <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Personal
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type='text'], 
+    input[type='email'], 
+    input[type='date'], 
+    input[type='number'], 
+    select, 
+    textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #acb3b4;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    input[type='text']:focus, 
+    input[type='email']:focus, 
+    input[type='date']:focus, 
+    input[type='number']:focus, 
+    select:focus, 
+    textarea:focus {
+        outline: none;
+        border-color: #5f5e5e;
+        box-shadow: 0 0 0 3px rgba(95, 94, 94, 0.1);
+    }
+</style>
+{% endblock %}

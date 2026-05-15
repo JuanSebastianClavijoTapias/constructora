@@ -1,0 +1,117 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}Nóminas - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="mb-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/10">
+    <div>
+        <h1 class="font-headline font-bold text-2xl lg:text-3xl text-on-surface">Nóminas</h1>
+        <p class="text-on-surface-variant text-sm mt-2">Gestiona y consulta el registro de nóminas</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'nomina_excel' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">table_chart</span>
+            <span>Excel</span>
+        </a>
+        <a href="{% url 'reporte_pdf' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+            <span>PDF</span>
+        </a>
+    </div>
+</div>
+
+{% if meses %}
+    {% for mes_key, mes_data in meses.items %}
+    <div class="mb-6 bg-white rounded-lg shadow-sm border border-outline-variant/20 overflow-hidden">
+        <!-- Header del mes -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-outline-variant/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-on-surface">{{ mes_key }}</h3>
+                    <p class="text-sm text-on-surface-variant mt-1">{{ mes_data.nominas|length }} nómina{{ mes_data.nominas|length|pluralize }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-on-surface-variant">Neto Total:</p>
+                    <p class="text-2xl font-bold text-green-600">${{ mes_data.total_neto|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de nóminas -->
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-outline-variant/20 bg-gray-50">
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-on-surface-variant">Empleado</th>
+                        <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Salario Base</th>
+                        <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Devengado</th>
+                        <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Descuentos</th>
+                        <th class="text-right py-3 px-4 text-sm font-semibold text-on-surface-variant">Neto</th>
+                        <th class="text-center py-3 px-4 text-sm font-semibold text-on-surface-variant">Estado</th>
+                        <th class="text-center py-3 px-4 text-sm font-semibold text-on-surface-variant">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nomina in mes_data.nominas %}
+                    <tr class="border-b border-outline-variant/10 hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 font-medium text-on-surface">{{ nomina.empleado.nombre_completo }}</td>
+                        <td class="py-3 px-4 text-right text-on-surface">${{ nomina.salario_base|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-right text-on-surface font-semibold">${{ nomina.total_devengado|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-right text-red-600 font-semibold">${{ nomina.total_descuentos|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-green-600">${{ nomina.total_neto|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-center">
+                            {% if nomina.estado == 'PAGADA' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                                    <span class="material-symbols-outlined text-sm">check</span>
+                                    Pagada
+                                </span>
+                            {% elif nomina.estado == 'CONFIRMADA' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                                    <span class="material-symbols-outlined text-sm">done_all</span>
+                                    Confirmada
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+                                    <span class="material-symbols-outlined text-sm">schedule</span>
+                                    {{ nomina.get_estado_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <a href="{% url 'nomina_detalle' nomina.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-blue-100 text-blue-600 hover:text-blue-900 transition-colors" title="Ver detalles">
+                                <span class="material-symbols-outlined text-base">visibility</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Resumen del mes -->
+        <div class="bg-gray-50 px-6 py-3 border-t border-outline-variant/20 grid grid-cols-3 gap-4">
+            <div>
+                <p class="text-xs text-on-surface-variant">Neto Total</p>
+                <p class="text-lg font-bold text-green-600">${{ mes_data.total_neto|floatformat:0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-on-surface-variant">Aportes Patronales</p>
+                <p class="text-lg font-bold text-orange-600">${{ mes_data.total_patronal|floatformat:0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-on-surface-variant">Total Costo</p>
+                <p class="text-lg font-bold text-purple-600">${{ mes_data.total_neto|add:mes_data.total_patronal|floatformat:0 }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+        <div class="inline-block mb-3">
+            <span class="material-symbols-outlined text-5xl text-blue-300">receipt_long</span>
+        </div>
+        <p class="text-on-surface-variant mb-2">No hay nóminas registradas aún.</p>
+        <p class="text-xs text-on-surface-variant">Crea una nómina desde la pestaña de Personal.</p>
+    </div>
+{% endif %}
+{% endblock %}

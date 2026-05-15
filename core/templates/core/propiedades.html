@@ -36,6 +36,8 @@
             <div class="h-48 bg-surface-container-low relative overflow-hidden flex-shrink-0">
                 {% if prop.imagenes.first %}
                 <img src="{{ prop.imagenes.first.imagen.url }}" alt="{{ prop.nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                {% elif prop.imagen_url %}
+                <img src="{{ prop.imagen_url }}" alt="{{ prop.nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 {% else %}
                 <div class="w-full h-full flex items-center justify-center bg-surface-container-highest text-on-surface-variant/30">
                     <span class="material-symbols-outlined text-5xl">holiday_village</span>
@@ -68,17 +70,29 @@
                     <p class="text-sm text-on-surface-variant">{{ prop.direccion }}, {{ prop.ciudad }}</p>
                 </div>
                 
-                <p class="text-2xl font-extrabold tracking-tighter text-on-surface mt-auto pt-2">${{ prop.precio|floatformat:0 }}</p>
+                <p class="text-2xl font-extrabold tracking-tighter text-on-surface mt-auto pt-2">${{ prop.precio_mensual|floatformat:0 }}</p>
                 
-                <div class="flex items-center gap-4 mt-4 pt-4 border-t border-outline-variant/20 text-on-surface-variant/80">
-                    <div class="flex items-center gap-1.5" title="Baños">
-                        <span class="material-symbols-outlined text-sm">bathtub</span>
-                        <span class="text-xs font-bold">{{ prop.banos }}</span>
-                    </div>
+                <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-outline-variant/20 text-on-surface-variant/80">
                     <div class="flex items-center gap-1.5" title="Habitaciones">
                         <span class="material-symbols-outlined text-sm">bed</span>
                         <span class="text-xs font-bold">{{ prop.habitaciones }}</span>
                     </div>
+                    <div class="flex items-center gap-1.5" title="Baños">
+                        <span class="material-symbols-outlined text-sm">bathtub</span>
+                        <span class="text-xs font-bold">{{ prop.baños }}</span>
+                    </div>
+                    {% if prop.patio %}
+                    <div class="flex items-center gap-1.5" title="Tiene patio">
+                        <span class="material-symbols-outlined text-sm">yard</span>
+                        <span class="text-xs font-bold">Patio</span>
+                    </div>
+                    {% endif %}
+                    {% if prop.parquedero %}
+                    <div class="flex items-center gap-1.5" title="Tiene parquedero">
+                        <span class="material-symbols-outlined text-sm">local_parking</span>
+                        <span class="text-xs font-bold">Parquedero</span>
+                    </div>
+                    {% endif %}
                 </div>
 
                 {% if user_profile.rol == 'ADMIN' %}

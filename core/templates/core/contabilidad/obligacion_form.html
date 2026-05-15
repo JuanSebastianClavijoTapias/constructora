@@ -1,0 +1,193 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Obligación{% else %}Nueva Obligación{% endif %} - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="max-w-3xl">
+    <!-- Header -->
+    <div class="mb-6 pb-4 border-b border-outline-variant/10">
+        <h2 class="font-headline font-bold text-2xl text-on-surface">
+            {% if form.instance.pk %}
+                <span class="material-symbols-outlined align-middle mr-2">edit</span>
+                Editar Obligación
+            {% else %}
+                <span class="material-symbols-outlined align-middle mr-2">add</span>
+                Nueva Obligación Fiscal
+            {% endif %}
+        </h2>
+    </div>
+
+    <!-- Formulario -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Propiedad -->
+        <div>
+            <label for="{{ form.propiedad.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                Propiedad
+            </label>
+            {{ form.propiedad }}
+            {% if form.propiedad.errors %}
+                <p class="text-sm text-error mt-1">{{ form.propiedad.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Información de la Obligación -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Información de la Obligación</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.tipo_obligacion.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Tipo de Obligación
+                        </label>
+                        {{ form.tipo_obligacion }}
+                        {% if form.tipo_obligacion.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.tipo_obligacion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.frecuencia_pago.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Frecuencia de Pago
+                        </label>
+                        {{ form.frecuencia_pago }}
+                        {% if form.frecuencia_pago.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.frecuencia_pago.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                        Descripción (opcional)
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <p class="text-sm text-error mt-1">{{ form.descripcion.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.monto_obligacion.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Monto (COP)
+                        </label>
+                        {{ form.monto_obligacion }}
+                        {% if form.monto_obligacion.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.monto_obligacion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.referencia_externa.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Referencia/Código
+                        </label>
+                        {{ form.referencia_externa }}
+                        {% if form.referencia_externa.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.referencia_externa.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Vencimiento y Alertas -->
+        <fieldset class="border border-outline-variant/10 rounded-lg p-4 bg-surface-container-lowest">
+            <legend class="text-sm font-semibold text-on-surface px-2">Vencimiento y Alertas</legend>
+            
+            <div class="space-y-4 mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.fecha_vencimiento_proximo.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Fecha Próximo Vencimiento
+                        </label>
+                        {{ form.fecha_vencimiento_proximo }}
+                        {% if form.fecha_vencimiento_proximo.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.fecha_vencimiento_proximo.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.dias_alerta.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                            Días de Alerta Antes del Vencimiento
+                        </label>
+                        {{ form.dias_alerta }}
+                        <p class="text-xs text-on-surface-variant mt-1">Se mostrará alerta N días antes</p>
+                        {% if form.dias_alerta.errors %}
+                            <p class="text-sm text-error mt-1">{{ form.dias_alerta.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Notas -->
+        <div>
+            <label for="{{ form.notas.id_for_label }}" class="block text-sm font-medium text-on-surface mb-2">
+                Notas Adicionales (opcional)
+            </label>
+            {{ form.notas }}
+            {% if form.notas.errors %}
+                <p class="text-sm text-error mt-1">{{ form.notas.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Estado -->
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/10">
+            <input type="hidden" name="activa" value="off">
+            <input type="checkbox" id="{{ form.activa.id_for_label }}" name="activa" value="on" 
+                   {% if form.instance.activa %}checked{% endif %} class="w-5 h-5 rounded border-slate-300 cursor-pointer">
+            <label for="{{ form.activa.id_for_label }}" class="text-sm font-medium text-on-surface cursor-pointer">
+                Obligación Activa
+            </label>
+        </div>
+
+        <!-- Errores generales -->
+        {% if form.non_field_errors %}
+        <div class="p-4 rounded-lg bg-red-50 border-l-4 border-l-error">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm text-error font-medium">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Botones de acción -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-outline-variant/10">
+            <a href="{% url 'obligaciones_fiscales_lista' %}" class="px-5 py-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container-highest transition-colors font-medium text-sm">
+                Cancelar
+            </a>
+            <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Obligación
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type='text'], 
+    input[type='email'], 
+    input[type='date'], 
+    input[type='number'], 
+    select, 
+    textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #acb3b4;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    input[type='text']:focus, 
+    input[type='email']:focus, 
+    input[type='date']:focus, 
+    input[type='number']:focus, 
+    select:focus, 
+    textarea:focus {
+        outline: none;
+        border-color: #5f5e5e;
+        box-shadow: 0 0 0 3px rgba(95, 94, 94, 0.1);
+    }
+</style>
+{% endblock %}

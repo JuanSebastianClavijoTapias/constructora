@@ -1,0 +1,74 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}Contratos de Mantenimiento - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-file-contract"></i> Contratos de Mantenimiento</h2>
+        <a href="{% url 'contrato_crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Contrato
+        </a>
+    </div>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if contratos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Proveedor</th>
+                        <th>Valor Mensual</th>
+                        <th>Próxima Renovación</th>
+                        <th>Frecuencia</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contrato in contratos %}
+                    <tr>
+                        <td><strong>{{ contrato.descripcion }}</strong></td>
+                        <td>{{ contrato.nombre_proveedor }}</td>
+                        <td>${{ contrato.valor_mensual|floatformat:0 }}</td>
+                        <td>{{ contrato.fecha_proximo_vencimiento|date:"d/m/Y" }}</td>
+                        <td>{{ contrato.get_frecuencia_display }}</td>
+                        <td>
+                            {% if contrato.fecha_proximo_vencimiento < today %}
+                                <span class="badge bg-danger">VENCIDO</span>
+                            {% elif contrato.fecha_proximo_vencimiento|add:"7 days" < today|add:"7 days" %}
+                                <span class="badge bg-warning">PRÓXIMO A VENCER</span>
+                            {% else %}
+                                <span class="badge bg-success">VIGENTE</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'contrato_editar' contrato.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info mb-0">
+            No hay contratos registrados.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

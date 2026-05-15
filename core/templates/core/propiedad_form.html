@@ -27,13 +27,23 @@
                 {% for field in form %}
                 <div class="
                     {% if field.name == 'descripcion' or field.name == 'direccion' %}md:col-span-2{% endif %}
+                    {% if field.field.widget.input_type == 'checkbox' %}flex items-center gap-3 py-3{% endif %}
                 ">
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="flex items-center gap-2">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}" class="text-sm font-medium text-on-surface cursor-pointer">
+                            {{ field.label }}
+                        </label>
+                    </div>
+                    {% else %}
                     <label for="{{ field.id_for_label }}" class="block text-xs font-bold mb-1 ml-1 tracking-wide uppercase text-on-surface-variant">
                         {{ field.label }}
                     </label>
                     <div class="mt-1">
                         {{ field }}
                     </div>
+                    {% endif %}
                     {% if field.help_text %}
                     <p class="text-[11px] text-on-surface-variant mt-1.5 ml-1">{{ field.help_text }}</p>
                     {% endif %}

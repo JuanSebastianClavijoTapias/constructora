@@ -1,0 +1,143 @@
+{% extends "core/contabilidad/base_contabilidad.html" %}
+
+{% block title %}Empleados - {% endblock %}
+
+{% block contabilidad_content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-on-surface">Personal Empleado</h2>
+        <p class="text-sm text-on-surface-variant mt-1">Gestiona el personal y sus registros</p>
+    </div>
+    <a href="{% url 'empleado_crear' %}" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm">
+        <span class="material-symbols-outlined text-lg">add</span>
+        <span>Nuevo Empleado</span>
+    </a>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="bg-white rounded-lg shadow-sm border border-outline-variant/20">
+    {% if empleados_activos or empleados_inactivos %}
+    
+    <!-- Empleados Activos -->
+    {% if empleados_activos %}
+    <div class="p-6 border-b border-outline-variant/20">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-600">check_circle</span>
+            Empleados Activos
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-outline-variant/20">
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Nombre</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Cédula</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Cargo</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Tipo Contrato</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Salario</th>
+                        <th class="text-center py-2 px-4 text-sm font-semibold text-on-surface-variant">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empleado in empleados_activos %}
+                    <tr class="border-b border-outline-variant/10 hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 text-on-surface font-medium">{{ empleado.nombre_completo }}</td>
+                        <td class="py-3 px-4 text-on-surface-variant">{{ empleado.cedula }}</td>
+                        <td class="py-3 px-4 text-on-surface">{{ empleado.get_tipo_empleado_display }}</td>
+                        <td class="py-3 px-4">
+                            <span class="inline-block px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md border-l-3 border-gray-600">{{ empleado.get_tipo_contrato_display }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-on-surface font-semibold">${{ empleado.salario_mensual_base|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <a href="{% url 'empleado_detalle' empleado.id %}" class="group relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-blue-100 text-blue-600 hover:text-blue-900 transition-all" title="Ver detalles">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap -top-8 z-10">Ver</div>
+                                </a>
+                                <a href="{% url 'empleado_editar' empleado.id %}" class="group relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-amber-100 text-amber-600 hover:text-amber-900 transition-all" title="Editar">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap -top-8 z-10">Editar</div>
+                                </a>
+                                <a href="{% url 'nomina_crear' empleado.id %}" class="group relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-green-100 text-green-600 hover:text-green-900 transition-all" title="Crear Nómina">
+                                    <span class="material-symbols-outlined text-base">receipt_long</span>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap -top-8 z-10">Nómina</div>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Empleados Inactivos -->
+    {% if empleados_inactivos %}
+    <div class="p-6">
+        <h3 class="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-gray-500">cancel</span>
+            Empleados Inactivos
+        </h3>
+        <div class="overflow-x-auto opacity-75">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-outline-variant/20">
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Nombre</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Cédula</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Cargo</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Tipo Contrato</th>
+                        <th class="text-left py-2 px-4 text-sm font-semibold text-on-surface-variant">Salario</th>
+                        <th class="text-center py-2 px-4 text-sm font-semibold text-on-surface-variant">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empleado in empleados_inactivos %}
+                    <tr class="border-b border-outline-variant/10 hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 text-on-surface font-medium">{{ empleado.nombre_completo }}</td>
+                        <td class="py-3 px-4 text-on-surface-variant">{{ empleado.cedula }}</td>
+                        <td class="py-3 px-4 text-on-surface">{{ empleado.get_tipo_empleado_display }}</td>
+                        <td class="py-3 px-4">
+                            <span class="inline-block px-3 py-1 text-xs font-medium bg-gray-200 text-gray-600 rounded-md border-l-3 border-gray-500">{{ empleado.get_tipo_contrato_display }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-on-surface font-semibold">${{ empleado.salario_mensual_base|floatformat:0 }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <a href="{% url 'empleado_detalle' empleado.id %}" class="group relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-blue-100 text-blue-400 hover:text-blue-700 transition-all" title="Ver detalles">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap -top-8 z-10">Ver</div>
+                                </a>
+                                <a href="{% url 'empleado_editar' empleado.id %}" class="group relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-amber-100 text-amber-400 hover:text-amber-700 transition-all" title="Editar">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap -top-8 z-10">Editar</div>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="p-6 text-center">
+        <div class="inline-block mb-3">
+            <span class="material-symbols-outlined text-5xl text-gray-300">person_add</span>
+        </div>
+        <p class="text-on-surface-variant mb-4">No hay empleados registrados</p>
+        <a href="{% url 'empleado_crear' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors font-medium text-sm">
+            <span class="material-symbols-outlined">add</span>
+            Crear nuevo empleado
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
