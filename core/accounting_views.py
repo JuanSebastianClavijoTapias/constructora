@@ -105,11 +105,17 @@ def contabilidad_dashboard(request):
     nominas_pendientes = nominas_mes.exclude(estado='PAGADA').count()
     total_nominas_mes = nominas_mes.count()
     
+    # Calcular total de nóminas del mes actual
+    total_nomina_actual = nominas_mes.aggregate(total=Sum('total_neto'))['total'] or Decimal('0')
+    
+    # Total de empleados activos
+    empleados_activos = PersonalEmpleado.objects.filter(activo=True)
+    
     context = build_context(
         request,
         'contabilidad',
         total_gastos_mes=total_gastos_mes,
-        total_nómina=total_nómina,
+        total_nómina=total_nomina_actual,
         total_mantenimiento=total_mantenimiento,
         total_servicios=total_servicios,
         alertas=alertas,
@@ -119,6 +125,7 @@ def contabilidad_dashboard(request):
         nominas_pagadas=nominas_pagadas,
         nominas_pendientes=nominas_pendientes,
         total_nominas_mes=total_nominas_mes,
+        empleados_activos=empleados_activos,
     )
     
     return render(request, 'core/contabilidad/dashboard.html', context)
