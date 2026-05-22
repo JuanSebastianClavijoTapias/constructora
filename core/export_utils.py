@@ -263,19 +263,19 @@ def exportar_nominas_excel(nominas, propiedad):
     total_neto = Decimal('0')
     
     for nomina in nominas:
-        total_neto += nomina.salario_neto
+        total_neto += nomina.total_neto
         datos.append({
             'Empleado': f"{nomina.empleado.nombres} {nomina.empleado.apellidos}",
             'Cédula': nomina.empleado.cedula,
             'Cargo': nomina.empleado.cargo,
             'Salario Base': float(nomina.salario_base),
-            'Deduciones': float(nomina.total_deducciones),
-            'Aportes Patronales': float(nomina.total_aportes),
-            'Neto a Pagar': float(nomina.salario_neto),
-            'Estado': 'Pagada' if nomina.pagada else 'Pendiente'
+            'Deducciones': float(nomina.total_descuentos),
+            'Aportes Patronales': float(nomina.total_aportes_patronales),
+            'Neto a Pagar': float(nomina.total_neto),
+            'Estado': nomina.estado
         })
     
-    encabezados = ['Empleado', 'Cédula', 'Cargo', 'Salario Base', 'Deduciones', 
+    encabezados = ['Empleado', 'Cédula', 'Cargo', 'Salario Base', 'Deducciones',
                    'Aportes Patronales', 'Neto a Pagar', 'Estado']
     exportador.agregar_tabla(datos, encabezados, fila)
     
@@ -284,13 +284,13 @@ def exportar_nominas_excel(nominas, propiedad):
     cell = exportador.ws[f'A{ultima_fila}']
     cell.value = "TOTAL NETO"
     cell.font = Font(bold=True)
-    
+
     cell = exportador.ws[f'G{ultima_fila}']
     cell.value = float(total_neto)
     cell.font = Font(bold=True)
     cell.number_format = exportador.currency_format
     cell.fill = PatternFill(start_color='FFFF99', end_color='FFFF99', fill_type='solid')
-    
+
     return exportador.obtener_archivo()
 
 
@@ -306,16 +306,16 @@ def exportar_obligaciones_excel(obligaciones, propiedad):
     for obligacion in obligaciones:
         total += obligacion.monto_obligacion
         datos.append({
-            'Obligación': obligacion.nombre_obligacion,
-            'Período': f"{obligacion.periodo_inicio.strftime('%m/%Y')} - {obligacion.periodo_fin.strftime('%m/%Y')}",
+            'Obligación': obligacion.get_tipo_obligacion_display(),
+            'Descripción': obligacion.descripcion or '-',
             'Monto': float(obligacion.monto_obligacion),
-            'Vencimiento': obligacion.fecha_vencimiento,
+            'Vencimiento': obligacion.fecha_vencimiento_proximo,
             'Frecuencia': obligacion.get_frecuencia_pago_display(),
-            'Pagada': 'Sí' if obligacion.pagada else 'No',
-            'Próx. Vencimiento': obligacion.proxima_fecha
+            'Activa': 'Sí' if obligacion.activa else 'No',
+            'Referencia': obligacion.referencia_externa or '-'
         })
     
-    encabezados = ['Obligación', 'Período', 'Monto', 'Vencimiento', 'Frecuencia', 'Pagada', 'Próx. Vencimiento']
+    encabezados = ['Obligación', 'Descripción', 'Monto', 'Vencimiento', 'Frecuencia', 'Activa', 'Referencia']
     exportador.agregar_tabla(datos, encabezados, fila)
     
     # Agregar total

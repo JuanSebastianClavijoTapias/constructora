@@ -321,6 +321,35 @@ def propiedades(request):
     )
 
 
+@login_required
+def propiedad_detalle(request, pk):
+    profile = get_request_profile(request)
+    propiedad = get_object_or_404(
+        Propiedad.objects.prefetch_related('imagenes', 'usuarios__user'),
+        pk=pk,
+    )
+    if not can_access_property(profile, propiedad):
+        messages.error(request, 'No tienes permiso para ver esta propiedad.')
+        return redirect('propiedades')
+
+    pagos_recientes = propiedad.pagos.order_by('-fecha_limite')[:5]
+    solicitudes = propiedad.solicitudes_soporte.select_related('reportado_por').order_by('-creado_en')[:5]
+    inquilinos = propiedad.usuarios.select_related('user').filter(rol=PerfilUsuario.ROL_INQUILINO)
+
+    return render(
+        request,
+        'core/propiedad_detalle.html',
+        build_context(
+            request,
+            'propiedades',
+            propiedad=propiedad,
+            pagos_recientes=pagos_recientes,
+            solicitudes=solicitudes,
+            inquilinos=inquilinos,
+        ),
+    )
+
+
 @admin_required
 def usuarios(request):
     form = UsuarioCasaForm(request.POST or None)

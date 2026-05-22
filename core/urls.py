@@ -13,6 +13,7 @@ urlpatterns = [
     path('soporte/custom/', views.soporte_crear_personalizado, name='soporte_crear_personalizado'),
     path('soporte/<int:pk>/estado/', views.soporte_actualizar_estado, name='soporte_actualizar_estado'),
     path('propiedades/', views.propiedades, name='propiedades'),
+    path('propiedades/<int:pk>/', views.propiedad_detalle, name='propiedad_detalle'),
     path('usuarios/', views.usuarios, name='usuarios'),
     path('propiedades/crear/', views.propiedad_crear, name='propiedad_crear'),
     path('propiedades/<int:pk>/editar/', views.propiedad_editar, name='propiedad_editar'),

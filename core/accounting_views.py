@@ -10,6 +10,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -828,19 +829,13 @@ def reporte_excel(request, mes=None, anio=None):
             empleado__propiedad__in=propiedades,
             periodo_mes=periodo_mes
         )
-        
-        obligaciones = ObligacionFiscal.objects.filter(
-            propiedad__in=propiedades,
-            periodo_inicio__month=mes,
-            periodo_inicio__year=anio
-        )
-        
+
         servicios = GastoServicioPublico.objects.filter(
             propiedad__in=propiedades,
             periodo_mes__month=mes,
             periodo_mes__year=anio
         )
-        
+
         # Generar Excel con openpyxl
         from openpyxl import Workbook
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -884,10 +879,10 @@ def reporte_excel(request, mes=None, anio=None):
             ws.cell(row=row, column=2).value = nomina.empleado.cedula
             ws.cell(row=row, column=3).value = nomina.empleado.cargo
             ws.cell(row=row, column=4).value = float(nomina.salario_base)
-            ws.cell(row=row, column=5).value = float(nomina.total_deducciones)
-            ws.cell(row=row, column=6).value = float(nomina.total_aportes)
-            ws.cell(row=row, column=7).value = float(nomina.salario_neto)
-            ws.cell(row=row, column=8).value = 'Pagada' if nomina.pagada else 'Pendiente'
+            ws.cell(row=row, column=5).value = float(nomina.total_descuentos)
+            ws.cell(row=row, column=6).value = float(nomina.total_aportes_patronales)
+            ws.cell(row=row, column=7).value = float(nomina.total_neto)
+            ws.cell(row=row, column=8).value = nomina.estado
             row += 1
         
         # Servicios públicos
@@ -907,9 +902,66 @@ def reporte_excel(request, mes=None, anio=None):
         row += 1
         for servicio in servicios:
             ws.cell(row=row, column=1).value = servicio.get_tipo_servicio_display()
-            ws.cell(row=row, column=2).value = f"{servicio.periodo_inicio.strftime('%m/%Y')}"
-            ws.cell(row=row, column=3).value = float(servicio.monto)
-            ws.cell(row=row, column=4).value = 'Estimado' if servicio.es_estimado else 'Real'
+            ws.cell(row=row, column=2).value = servicio.periodo_mes.strftime('%m/%Y')
+            ws.cell(row=row, column=3).value = float(servicio.monto_total)
+            ws.cell(row=row, column=4).value = 'Estimado' if servicio.es_estimacion else 'Real'
+            row += 1
+
+        # Obligaciones fiscales
+        obligaciones = ObligacionFiscal.objects.filter(
+            propiedad__in=propiedades,
+            activa=True
+        ).order_by('fecha_vencimiento_proximo')
+
+        row += 2
+        ws.merge_cells(f'A{row}:D{row}')
+        cell = ws[f'A{row}']
+        cell.value = 'OBLIGACIONES FISCALES'
+        cell.font = Font(bold=True, size=12)
+
+        row += 1
+        for col, header in enumerate(['Tipo', 'Descripción', 'Monto', 'Próx. Vencimiento', 'Frecuencia', 'Referencia'], 1):
+            cell = ws.cell(row=row, column=col)
+            cell.value = header
+            cell.font = header_font
+            cell.fill = header_fill
+
+        row += 1
+        for ob in obligaciones:
+            ws.cell(row=row, column=1).value = ob.get_tipo_obligacion_display()
+            ws.cell(row=row, column=2).value = ob.descripcion or '-'
+            ws.cell(row=row, column=3).value = float(ob.monto_obligacion)
+            ws.cell(row=row, column=4).value = ob.fecha_vencimiento_proximo.strftime('%d/%m/%Y')
+            ws.cell(row=row, column=5).value = ob.get_frecuencia_pago_display()
+            ws.cell(row=row, column=6).value = ob.referencia_externa or '-'
+            row += 1
+
+        # Contratos de mantenimiento
+        contratos = ContratoMantenimiento.objects.filter(
+            propiedad__in=propiedades,
+            estado='ACTIVO'
+        ).order_by('fecha_proximo_pago')
+
+        row += 2
+        ws.merge_cells(f'A{row}:D{row}')
+        cell = ws[f'A{row}']
+        cell.value = 'CONTRATOS DE MANTENIMIENTO'
+        cell.font = Font(bold=True, size=12)
+
+        row += 1
+        for col, header in enumerate(['Servicio', 'Proveedor', 'Costo Mensual', 'Próx. Pago', 'Estado'], 1):
+            cell = ws.cell(row=row, column=col)
+            cell.value = header
+            cell.font = header_font
+            cell.fill = header_fill
+
+        row += 1
+        for contrato in contratos:
+            ws.cell(row=row, column=1).value = contrato.get_tipo_servicio_display()
+            ws.cell(row=row, column=2).value = contrato.proveedor
+            ws.cell(row=row, column=3).value = float(contrato.costo_mensual)
+            ws.cell(row=row, column=4).value = contrato.fecha_proximo_pago.strftime('%d/%m/%Y')
+            ws.cell(row=row, column=5).value = contrato.estado
             row += 1
         
         # Ajustar ancho de columnas
@@ -917,11 +969,12 @@ def reporte_excel(request, mes=None, anio=None):
             ws.column_dimensions[chr(64 + col)].width = 15
         
         # Generar respuesta
-        output = __import__('io').BytesIO()
+        from io import BytesIO
+        output = BytesIO()
         wb.save(output)
         output.seek(0)
         
-        response = __import__('django.http').HttpResponse(
+        response = HttpResponse(
             output.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
@@ -930,7 +983,7 @@ def reporte_excel(request, mes=None, anio=None):
         
     except Exception as e:
         messages.error(request, f'Error generando Excel: {str(e)}')
-        return redirect('contabilidad:dashboard')
+        return redirect('contabilidad_dashboard')
 
 
 @admin_required
@@ -957,91 +1010,205 @@ def reporte_pdf(request, mes=None, anio=None):
             empleado__propiedad__in=propiedades,
             periodo_mes=periodo_mes
         )
-        
+
         servicios = GastoServicioPublico.objects.filter(
             propiedad__in=propiedades,
             periodo_mes__month=mes,
             periodo_mes__year=anio
         )
-        
+
+        obligaciones = ObligacionFiscal.objects.filter(
+            propiedad__in=propiedades,
+            activa=True
+        ).order_by('fecha_vencimiento_proximo')
+
+        contratos = ContratoMantenimiento.objects.filter(
+            propiedad__in=propiedades,
+            estado='ACTIVO'
+        ).order_by('fecha_proximo_pago')
+
         # Crear contenido HTML
         html_content = f"""
         <h2 style="text-align: center; color: #1F4E78;">REPORTE CONTABLE MENSUAL</h2>
         <p style="text-align: center; font-size: 12pt;">{periodo_mes.strftime('%B de %Y')}</p>
-        
+
         <h3>Resumen de Nóminas</h3>
         <table>
             <thead>
                 <tr>
                     <th>Empleado</th>
                     <th>Cédula</th>
+                    <th>Cargo</th>
                     <th>Salario Base</th>
-                    <th>Total Deducciones</th>
+                    <th>Deducciones</th>
+                    <th>Aportes Patronales</th>
                     <th>Neto a Pagar</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
         """
-        
+
         total_neto = Decimal('0')
+        total_aportes = Decimal('0')
         for nomina in nominas:
-            total_neto += nomina.salario_neto
+            total_neto += nomina.total_neto
+            total_aportes += nomina.total_aportes_patronales
             html_content += f"""
                 <tr>
                     <td>{nomina.empleado.nombres} {nomina.empleado.apellidos}</td>
                     <td>{nomina.empleado.cedula}</td>
+                    <td>{nomina.empleado.cargo}</td>
                     <td class="text-right">${nomina.salario_base:,.0f}</td>
-                    <td class="text-right">${nomina.total_deducciones:,.0f}</td>
-                    <td class="text-right"><strong>${nomina.salario_neto:,.0f}</strong></td>
+                    <td class="text-right">${nomina.total_descuentos:,.0f}</td>
+                    <td class="text-right">${nomina.total_aportes_patronales:,.0f}</td>
+                    <td class="text-right"><strong>${nomina.total_neto:,.0f}</strong></td>
+                    <td class="text-center">{nomina.estado}</td>
                 </tr>
             """
-        
+
         html_content += f"""
             </tbody>
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="4">TOTAL NÓMINA</td>
+                    <td colspan="6">TOTAL NÓMINA NETA</td>
                     <td class="text-right"><strong>${total_neto:,.0f}</strong></td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
-        
+
         <h3>Servicios Públicos</h3>
         <table>
             <thead>
                 <tr>
                     <th>Tipo de Servicio</th>
-                    <th>Referencia</th>
+                    <th>Período</th>
+                    <th>Proveedor</th>
                     <th>Monto</th>
                     <th>Tipo</th>
                 </tr>
             </thead>
             <tbody>
         """
-        
+
         total_servicios = Decimal('0')
         for servicio in servicios:
-            total_servicios += servicio.monto
+            total_servicios += servicio.monto_total
             html_content += f"""
                 <tr>
                     <td>{servicio.get_tipo_servicio_display()}</td>
-                    <td>{servicio.referencia_medidor or '-'}</td>
-                    <td class="text-right">${servicio.monto:,.0f}</td>
-                    <td>{'Estimado' if servicio.es_estimado else 'Real'}</td>
+                    <td>{servicio.periodo_mes.strftime('%m/%Y')}</td>
+                    <td>{servicio.proveedor or '-'}</td>
+                    <td class="text-right">${servicio.monto_total:,.0f}</td>
+                    <td>{'Estimado' if servicio.es_estimacion else 'Real'}</td>
                 </tr>
             """
-        
+
         html_content += f"""
             </tbody>
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="2">TOTAL SERVICIOS</td>
-                    <td colspan="2" class="text-right"><strong>${total_servicios:,.0f}</strong></td>
+                    <td colspan="3">TOTAL SERVICIOS</td>
+                    <td class="text-right"><strong>${total_servicios:,.0f}</strong></td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
+
+        <h3>Obligaciones Fiscales Activas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Próx. Vencimiento</th>
+                    <th>Frecuencia</th>
+                    <th>Referencia</th>
+                </tr>
+            </thead>
+            <tbody>
         """
-        
+
+        total_obligaciones = Decimal('0')
+        for ob in obligaciones:
+            total_obligaciones += ob.monto_obligacion
+            vencida_class = ' style="color:red;"' if ob.esta_vencida else ''
+            html_content += f"""
+                <tr>
+                    <td>{ob.get_tipo_obligacion_display()}</td>
+                    <td>{ob.descripcion or '-'}</td>
+                    <td class="text-right">${ob.monto_obligacion:,.0f}</td>
+                    <td class="text-center"{vencida_class}>{ob.fecha_vencimiento_proximo.strftime('%d/%m/%Y')}</td>
+                    <td>{ob.get_frecuencia_pago_display()}</td>
+                    <td>{ob.referencia_externa or '-'}</td>
+                </tr>
+            """
+
+        html_content += f"""
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="2">TOTAL OBLIGACIONES</td>
+                    <td class="text-right"><strong>${total_obligaciones:,.0f}</strong></td>
+                    <td colspan="3"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <h3>Contratos de Mantenimiento Activos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Servicio</th>
+                    <th>Proveedor</th>
+                    <th>Costo Mensual</th>
+                    <th>Próx. Pago</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+
+        total_contratos = Decimal('0')
+        for contrato in contratos:
+            total_contratos += contrato.costo_mensual
+            html_content += f"""
+                <tr>
+                    <td>{contrato.get_tipo_servicio_display()}</td>
+                    <td>{contrato.proveedor}</td>
+                    <td class="text-right">${contrato.costo_mensual:,.0f}</td>
+                    <td class="text-center">{contrato.fecha_proximo_pago.strftime('%d/%m/%Y')}</td>
+                    <td>{contrato.telefono_proveedor or '-'}</td>
+                </tr>
+            """
+
+        gran_total = total_neto + total_aportes + total_servicios + total_obligaciones + total_contratos
+        html_content += f"""
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="2">TOTAL MANTENIMIENTO</td>
+                    <td class="text-right"><strong>${total_contratos:,.0f}</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="resumen">
+            <h3>Resumen de Totales</h3>
+            <div class="resumen-item"><label>Nómina Neta:</label><span class="valor">${total_neto:,.0f}</span></div>
+            <div class="resumen-item"><label>Aportes Patronales:</label><span class="valor">${total_aportes:,.0f}</span></div>
+            <div class="resumen-item"><label>Servicios Públicos:</label><span class="valor">${total_servicios:,.0f}</span></div>
+            <div class="resumen-item"><label>Obligaciones Fiscales:</label><span class="valor">${total_obligaciones:,.0f}</span></div>
+            <div class="resumen-item"><label>Contratos Mantenimiento:</label><span class="valor">${total_contratos:,.0f}</span></div>
+            <div class="resumen-item" style="border-top:2px solid #1F4E78; margin-top:8px; padding-top:8px; font-size:13pt;">
+                <label>GRAN TOTAL:</label><span class="valor"><strong>${gran_total:,.0f}</strong></span>
+            </div>
+        </div>
+        """
+
         # Generar PDF
         html_completo = ExportadorPDF.generar_reporte_html(
             f'Reporte Contable - {periodo_mes.strftime("%B %Y")}',
@@ -1049,13 +1216,13 @@ def reporte_pdf(request, mes=None, anio=None):
         )
         pdf_bytes = ExportadorPDF.generar_pdf(html_completo)
         
-        response = __import__('django.http').HttpResponse(pdf_bytes, content_type='application/pdf')
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="reporte_{periodo_mes.strftime("%m_%Y")}.pdf"'
         return response
         
     except Exception as e:
         messages.error(request, f'Error generando PDF: {str(e)}')
-        return redirect('contabilidad:dashboard')
+        return redirect('contabilidad_dashboard')
 
 
 @admin_required
@@ -1080,7 +1247,7 @@ def nomina_excel(request):
     
     archivo = exportar_nominas_excel(nominas, propiedades[0] if propiedades else None)
     
-    response = __import__('django.http').HttpResponse(
+    response = HttpResponse(
         archivo.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
@@ -1107,7 +1274,7 @@ def obligaciones_excel(request):
     
     archivo = exportar_obligaciones_excel(obligaciones, propiedades[0] if propiedades else None)
     
-    response = __import__('django.http').HttpResponse(
+    response = HttpResponse(
         archivo.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
