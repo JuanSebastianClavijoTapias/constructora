@@ -32,7 +32,7 @@
     {% if propiedades_list %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for prop in propiedades_list %}
-        <div class="bg-surface-container-lowest rounded-2xl editorial-shadow group overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+        <div class="bg-surface-container-lowest rounded-2xl editorial-shadow group overflow-hidden flex flex-col hover:shadow-md transition-shadow relative">
             <div class="h-48 bg-surface-container-low relative overflow-hidden flex-shrink-0">
                 {% if prop.imagenes.first %}
                 <img src="{{ prop.imagenes.first.imagen.url }}" alt="{{ prop.nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -97,10 +97,11 @@
 
                 {% if user_profile.rol == 'ADMIN' %}
                 <div class="mt-4 pt-4 border-t border-outline-variant/20 flex gap-2 justify-end">
-                     <a href="{% url 'propiedad_editar' prop.id %}" class="text-xs font-medium text-primary hover:underline" title="Editar">Editar</a>
+                    <a href="{% url 'propiedad_editar' prop.id %}" class="relative z-10 text-xs font-medium text-primary hover:underline" title="Editar">Editar</a>
                 </div>
                 {% endif %}
             </div>
+            <a href="{% url 'propiedad_detalle' prop.id %}" class="absolute inset-0" aria-label="Ver {{ prop.nombre }}"></a>
         </div>
         {% endfor %}
     </div>
